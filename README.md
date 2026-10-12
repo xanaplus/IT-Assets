@@ -5,7 +5,7 @@ scanning, offboarding, an exec dashboard and user administration. Supabase
 Postgres is the source of truth. The SharePoint list is a read-only mirror
 kept in step automatically.
 
-**Live:** https://xana-assets.vercel.app
+**Live:** https://it-assets-alpha.vercel.app
 
 | Page | What it is | Who gets in |
 |---|---|---|
@@ -135,7 +135,7 @@ There is no CLI step; `.vercel/project.json` only records a one time
 
 ```bash
 git push
-curl -s https://xana-assets.vercel.app/js/supabase-client.js | grep "something only the new build has"
+curl -s https://it-assets-alpha.vercel.app/js/supabase-client.js | grep "something only the new build has"
 ```
 
 ## Database migrations

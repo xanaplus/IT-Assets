@@ -4,7 +4,7 @@ The executive view of the asset register: portfolio value, depreciation,
 warranty exposure, verification health and breakdowns by status, type,
 location and department.
 
-Served at https://xana-assets.vercel.app/dashboard (routed here by
+Served at https://it-assets-alpha.vercel.app/dashboard (routed here by
 `vercel.json`). Two files: `index.html` and `app.js`. No build step, no
 framework, no chart library. Charts are hand-rolled SVG and CSS.
 

@@ -45,7 +45,7 @@ Apps (/assets /dashboard /admin /login) ──supabase-js──▶ Supabase Post
   server-side. MSAL / browser Graph sign-in is **gone** — `api/summary.js`
   (the old MSAL-backed dashboard API) has been deleted from `api/`.
 - The repo root is now `Asset-Scanner`, deployed as **one** Vercel project
-  (`xana-assets.vercel.app`) serving `/assets`, `/dashboard`, `/admin`,
+  (`it-assets-alpha.vercel.app`) serving `/assets`, `/dashboard`, `/admin`,
   `/login`. The old two-project split (`xana-asset-lookup` scanner +
   `asset-scanner-iota` dashboard) is legacy — see README's note to archive
   those once the unified URL is confirmed.
@@ -196,12 +196,12 @@ it's just no longer used by any browser code (see §1):
 
 ## 8. Deployment
 
-- One Vercel project, root of repo, domain `xana-assets.vercel.app`
+- One Vercel project, root of repo, domain `it-assets-alpha.vercel.app`
   (see `docs/IT_Manager_Handoff.md` §7 for the routing table and
   local-dev harness). No build step — static + `api/*.js` serverless
   functions.
 - GitHub → Vercel auto-deploy: every push to `main` on
-  `github.com/Roystone-Were/Asset-Scanner` deploys. `test` workflow
+  `github.com/xanaplus/IT-Assets` deploys. `test` workflow
   (`.github/workflows/test.yml`) runs scanner unit tests + syntax-checks the
   two `api/*.js` functions on every push/PR. `node scripts/check-syntax.mjs`
   (parses every page's inline script) is run before pushing — wiring it into

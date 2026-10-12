@@ -1,6 +1,6 @@
 # Xana Asset System: what this app does
 
-**Live:** https://xana-assets.vercel.app
+**Live:** https://it-assets-alpha.vercel.app
 **Reviewed:** 2026-09-04
 **One line:** one app that registers, verifies, tracks and reports every
 company asset, live from Supabase and mirrored to the SharePoint list.

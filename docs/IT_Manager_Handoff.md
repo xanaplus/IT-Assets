@@ -3,7 +3,7 @@
 **For:** IT Manager / whoever operates this system day to day
 **Last reconciled:** 2026-09-04 (view-only role, camera batch, role-gated reads, event logging)
 **Supersedes:** the referenced-but-never-committed `IT_Manager_Handoff_2026-08-26.md`
-**Live:** `https://xana-assets.vercel.app` · Source of truth: Supabase `irqrnyixizzorvfmtvag` (eu-west-1)
+**Live:** `https://it-assets-alpha.vercel.app` · Source of truth: Supabase `irqrnyixizzorvfmtvag` (eu-west-1)
 
 > This is the operational runbook: what's running, where the keys are, what breaks,
 > and exactly what to do about it. For narrative history read `HANDOFF.md`; for
@@ -166,11 +166,11 @@ Base64 for the secret:
 
 ## 10. On-call quick facts
 
-- Live URL: `https://xana-assets.vercel.app`
+- Live URL: `https://it-assets-alpha.vercel.app`
 - Support/admin: `it@xanalife.com` (admin), `roystone@xanalife.com` (super_admin)
 - Supabase project: `irqrnyixizzorvfmtvag`, region eu-west-1
 - SP list id: `7d3b5f47-8199-4cb9-b7c4-361dc70c4622`, site `xanalifeTechData`
-- GitHub repo: `Roystone-Were/Asset-Scanner` (push to `main` = deploy)
+- GitHub repo: `xanaplus/IT-Assets` (push to `main` = deploy)
 
 ---
 

@@ -255,7 +255,7 @@ module.exports = async function handler(req, res) {
         headers: serviceHeaders(),
         body: JSON.stringify({
           email,
-          redirect_to: process.env.INVITE_REDIRECT_TO || "https://xana-assets.vercel.app/login",
+          redirect_to: process.env.INVITE_REDIRECT_TO || "https://it-assets-alpha.vercel.app/login",
         }),
       });
       if (invRes.ok) {
