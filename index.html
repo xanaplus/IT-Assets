@@ -52,18 +52,23 @@
       .who-label{display:none}      /* keep just the email + Sign out */
     }
 
-    /* hero + sign-in: asymmetric split */
-    .hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,1fr);gap:48px;align-items:start;margin-bottom:56px}
-    h1{font-size:clamp(2.1rem,4.5vw,3.3rem);font-weight:800;letter-spacing:-.03em;line-height:1.04;text-wrap:balance}
-    h1 em{font-style:normal;color:var(--accent)}
-    .hero p{margin-top:16px;font-size:.98rem;color:var(--muted);max-width:46ch;line-height:1.55;text-wrap:pretty}
-    @media(max-width:880px){
-      .hero{grid-template-columns:1fr;gap:36px;margin-bottom:44px}.top{margin-bottom:36px}
-    }
+    /* signed out: just the sign-in card, centred */
+    .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+    .hero-brand{display:none;align-items:center;gap:14px}
+    .hero-brand img{height:clamp(36px,6vw,52px);width:auto}
+    .hero-brand span{font-weight:800;font-size:clamp(1.6rem,4.5vw,2.4rem);letter-spacing:-.03em;line-height:1.1}
+    body.signed-out .signin h2{font-size:1.4rem}
+    body.signed-out .signin .sub{font-size:.95rem}
+    @media(max-width:880px){.top{margin-bottom:36px}}
+    /* signed out: brand moves above the card, header shrinks to the theme toggle */
+    body.signed-out .hero-brand{display:flex}
+    /* header floats so the title + card sit dead centre of the screen */
+    body.signed-out{padding-bottom:40px}
+    body.signed-out .top{position:absolute;top:0;left:0;right:0;margin:0}
+    body.signed-out .top .brand > span, body.signed-out .hero-brand img, body.signed-out footer{display:none}
 
-    /* sign-in card (right column) */
     .signin{
-      position:relative;background:var(--panel);border:1px solid var(--hairline);border-radius:var(--radius);
+      position:relative;width:100%;max-width:400px;background:var(--panel);border:1px solid var(--hairline);border-radius:var(--radius);
       padding:28px 26px;
       box-shadow:var(--shadow-lifted);
       animation:rise .6s var(--ease) backwards;animation-delay:.1s;
@@ -141,12 +146,8 @@
     </div>
   </div>
 
-  <section class="hero">
-    <div>
-      <h1>Every asset.<br/>One <em>register.</em></h1>
-      <p>Scan a barcode, update the asset on the spot, and the numbers report themselves.</p>
-    </div>
-
+  <section class="hero" id="hero">
+    <div class="hero-brand"><img src="/scanner-app/xana-logo.png" alt="" /><span>Xana Asset System</span></div>
     <!-- sign-in card lives here for signed-out users -->
     <div class="signin" id="signinCard" hidden>
       <h2>Sign in</h2>
@@ -233,10 +234,11 @@ function esc(s){return window.XanaUI.esc(s);}
   if (!session || !session.user) {
     // Signed out: show the sign-in card in the hero, hide workspace tiles.
     document.getElementById("signinCard").hidden = false;
+    document.body.classList.add("signed-out");
     const authNotice = XanaSupabase.popAuthNotice();
     if (authNotice) msg("msg", authNotice, true);
     document.getElementById("tiles").style.display = "none";
-    document.getElementById("tilesLabel").textContent = "Workspace pages appear here after you sign in";
+    document.getElementById("tilesLabel").hidden = true;
     done();
     return;
   }
@@ -247,16 +249,17 @@ function esc(s){return window.XanaUI.esc(s);}
   // cannot carry the temporary password into the app.
   if (await XanaSupabase.needsPasswordChange()) {
     document.getElementById("signinCard").hidden = false;
+    document.body.classList.add("signed-out");
     show(document.getElementById("stepEmail"), false);
     show(document.getElementById("stepPasswordForm"), true);
     document.getElementById("tiles").style.display = "none";
-    document.getElementById("tilesLabel").textContent = "Choose your own password to continue";
+    document.getElementById("tilesLabel").hidden = true;
     done();
     return;
   }
 
   // Signed in: drop the sign-in card entirely.
-  document.getElementById("signinCard").remove();
+  document.getElementById("hero").remove();
 
   const email = String(session.user.email || "").toLowerCase();
   let roles = [];
