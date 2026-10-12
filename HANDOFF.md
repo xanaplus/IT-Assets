@@ -120,7 +120,7 @@ Still the correct, current setup — nothing here changed with the migration,
 it's just no longer used by any browser code (see §1):
 
 - **ClientId:** `7caa51af-9f32-42d8-8264-da5b97c2f8eb`
-- **Certificate thumbprint:** `B4437765C89E84AE84B813194E6BD0D54EB3F430`
+- **Certificate thumbprint:** `19964C026ED341297FF4B739FCE2805C593C52D4`
   (self-signed, in CurrentUser\My; `.pfx`/`.cer` live beside the repo scripts,
   **not committed** — gitignored).
   **Rotating:** run `generate-cert.ps1` — it creates a new cert with a
@@ -150,7 +150,7 @@ it's just no longer used by any browser code (see §1):
   Connect-PnPOnline -Url "https://refrontiergroup.sharepoint.com/sites/xanalifeTechData" `
     -ClientId "7caa51af-9f32-42d8-8264-da5b97c2f8eb" `
     -Tenant "refrontiergroup.onmicrosoft.com" `
-    -Thumbprint "B4437765C89E84AE84B813194E6BD0D54EB3F430"
+    -Thumbprint "19964C026ED341297FF4B739FCE2805C593C52D4"
   ```
 - **Graph `$filter` on list fields requires an index** (verified):
   `SerialNumber` and `Title` are indexed via `Index-LookupFields.ps1`

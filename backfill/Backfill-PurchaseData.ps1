@@ -17,7 +17,7 @@ param(
   [string]$ListTitle  = "Xana Asset Inventory",
   [string]$ClientId   = "7caa51af-9f32-42d8-8264-da5b97c2f8eb",
   [string]$Tenant     = "refrontiergroup.onmicrosoft.com",
-  [string]$Thumbprint = "B4437765C89E84AE84B813194E6BD0D54EB3F430",
+  [string]$Thumbprint = "19964C026ED341297FF4B739FCE2805C593C52D4",
   [string]$Csv        = (Join-Path $PSScriptRoot "purchase-backfill.csv")
 )
 $ErrorActionPreference = 'Stop'
