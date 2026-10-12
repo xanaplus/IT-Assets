@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <script>try{var __t=localStorage.getItem("xana_theme");document.documentElement.setAttribute("data-theme",__t||"dark")}catch(e){}</script>
+    <script>try{var __t=localStorage.getItem("xana_theme");if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t)}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Xana Asset System</title>
   <link rel="icon" href="/scanner-app/icon-192.png" />
   <script src="/scanner-app/lib/supabase.min.js"></script>
-  <script src="/js/supabase-client.js?v=17"></script>
-  <script src="/js/ui.js?v=17"></script>
+  <script src="/js/supabase-client.js?v=18"></script>
+  <script src="/js/ui.js?v=18"></script>
   <link rel="stylesheet" href="/css/base.css" />
   <style>
     /* Colour, radius and elevation tokens come from /css/base.css. */
@@ -215,10 +215,7 @@
 
 <script>
 "use strict";
-const STORAGE_THEME="xana_theme";
-function applyThemeLanding(){const s=localStorage.getItem(STORAGE_THEME)||"dark";document.documentElement.setAttribute("data-theme",s);const t=document.getElementById("themeToggle");if(t)t.setAttribute("aria-checked",s==="dark");}
-applyThemeLanding();
-document.getElementById("themeToggle")?.addEventListener("click",()=>{const c=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",c);localStorage.setItem(STORAGE_THEME,c);document.getElementById("themeToggle").setAttribute("aria-checked",c==="dark");});
+XanaUI.initTheme();
 function show(el,on){el.style.display=on?"block":"none";}
 function msg(id,text,isErr){const m=document.getElementById(id);if(!m)return;m.textContent=text||"";m.className="msg show "+(isErr?"err":"info");}
 function esc(s){return window.XanaUI.esc(s);}

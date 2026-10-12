@@ -21,26 +21,8 @@ const DEP_COLORS = {
     "Fully depreciated": "#dc2626", "In progress": "#d97706", "No data": "#64748b",
   };
 
-  // ---------- Theme (light default, shared key with scanner) ----------
-  const STORAGE_THEME = "xana_theme";
-  function applyTheme() {
-    const stored = localStorage.getItem(STORAGE_THEME) || "light";
-    document.documentElement.setAttribute("data-theme", stored);
-    const tog = document.getElementById("themeToggle");
-    if (tog) tog.setAttribute("aria-checked", stored === "dark");
-  }
-  applyTheme(); // apply immediately on script load
-  document.addEventListener("DOMContentLoaded", () => {
-    const tog = document.getElementById("themeToggle");
-    if (tog) {
-      tog.addEventListener("click", () => {
-        const cur = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", cur);
-        localStorage.setItem(STORAGE_THEME, cur);
-        tog.setAttribute("aria-checked", cur === "dark");
-      });
-    }
-  });
+  // ---------- Theme (device default until toggled; see js/ui.js) ----------
+  document.addEventListener("DOMContentLoaded", () => XanaUI.initTheme());
   // ---------- Auth (single sign-in page at /login) ----------
   let account = null;
 
@@ -114,7 +96,7 @@ const DEP_COLORS = {
       try { mountWarrantyWidget(items); } catch (e) { console.warn("warranty widget:", e); }
       const isAdminUser = (await XanaSupabase.myRoles()).some(r => r === "admin" || r === "super_admin");
       const badge = document.getElementById("roleBadge");
-      if (badge) { badge.textContent = isAdminUser ? "ADMIN" : "VIEWER"; badge.style.background = isAdminUser ? "#3b82f6" : "#64748b"; }
+      if (badge) { badge.textContent = isAdminUser ? "ADMIN" : "VIEWER"; badge.style.setProperty("--c", isAdminUser ? "var(--accent)" : "var(--muted)"); }
     } catch (e) {
       console.error(e);
       main.innerHTML = '<div class="errbox">' + esc(e.message || e) + '</div>';
@@ -668,9 +650,9 @@ const DEP_COLORS = {
           (i) =>
             "<tr><td><b>" + esc(i.tag) + "</b></td><td>" + esc(i.type) + "</td><td>" + esc(i.model) + "</td><td>" +
             esc(i.serial) + "</td><td>" + esc(i.employee) + "</td><td>" + esc(i.location) + "</td>" +
-            '<td><span class="pill" style="background:' + statusColor(i.status) + '">' + esc(i.status) + "</span></td>" +
+            '<td><span class="pill" style="--c:' + statusColor(i.status) + '">' + esc(i.status) + "</span></td>" +
             "<td>" + esc(i.purchaseDate) + "</td><td>" + money(i.purchasePrice) + '</td><td><b>' + money(i.bookValue) + "</b></td>" +
-            '<td><span class="pill" style="background:' + depColor(i.depStatus) + '">' + esc(i.depStatus) + "</span></td></tr>",
+            '<td><span class="pill" style="--c:' + depColor(i.depStatus) + '">' + esc(i.depStatus) + "</span></td></tr>",
         )
         .join("") +
       "</tbody></table>");

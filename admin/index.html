@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("xana_theme")||"light")}catch(e){}</script>
+    <script>try{var __t=localStorage.getItem("xana_theme");if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t)}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
   <title>Admin · Xana</title>
   <link rel="icon" href="/scanner-app/icon-192.png" />
   <script src="/scanner-app/lib/supabase.min.js"></script>
-  <script src="/js/supabase-client.js?v=17"></script>
-  <script src="/js/ui.js?v=17"></script>
+  <script src="/js/supabase-client.js?v=18"></script>
+  <script src="/js/ui.js?v=18"></script>
   <link rel="stylesheet" href="/css/base.css" />
   <link rel="stylesheet" href="/css/nav.css" />
   <style>
@@ -56,7 +56,7 @@
     table{width:100%;border-collapse:collapse;font-size:.85rem}
     th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--hairline);vertical-align:middle}
     th{color:var(--muted);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em}
-    .pill{padding:2px 8px;border-radius:999px;background:var(--card2);border:1px solid var(--border);font-size:.7rem}
+    .pill{padding:2px 8px;border-radius:999px;font-size:.7rem}
     #authState{font-size:.75rem;color:var(--muted);margin-bottom:8px}
     .grid2{display:flex;gap:10px;flex-wrap:wrap}
     .grid2 > *{flex:1;min-width:180px}
@@ -130,10 +130,10 @@
     td.err-cell{color:var(--red);font-size:.75rem;max-width:280px;white-space:normal}
     /* Audit detail is a quiet one-liner; .err-cell's red would read as a fault. */
     td.detail-cell{color:var(--muted);font-size:.75rem;max-width:340px;white-space:normal}
-    .pill.st-pending{background:rgba(217,119,6,.12);border-color:rgba(217,119,6,.3);color:#d97706}
-    .pill.st-processing{background:rgba(37,99,235,.1);border-color:rgba(37,99,235,.3);color:var(--blue)}
-    .pill.st-failed{background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.3);color:var(--red)}
-    .pill.st-done{background:rgba(22,163,74,.1);border-color:rgba(22,163,74,.3);color:var(--accent)}
+    .pill.st-pending{--c:var(--orange)}
+    .pill.st-processing{--c:var(--blue)}
+    .pill.st-failed{--c:var(--red)}
+    .pill.st-done{--c:var(--green)}
   .sync-alert{display:none;align-items:center;gap:10px;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);color:var(--red);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:.85rem}
   .sync-alert .n{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 8px;border-radius:999px;background:var(--red);color:#fff;font-weight:700;font-size:.85rem}
     tbody tr{transition:background-color .15s var(--ease-out)}
@@ -322,9 +322,7 @@
 </div>
 <script>
 "use strict";
-const STORAGE_THEME="xana_theme";
-function applyTheme(){const s=localStorage.getItem(STORAGE_THEME)||"light";document.documentElement.setAttribute("data-theme",s);document.getElementById("themeToggle").setAttribute("aria-checked",s==="dark");}
-applyTheme();document.getElementById("themeToggle")?.addEventListener("click",()=>{const c=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",c);localStorage.setItem(STORAGE_THEME,c);document.getElementById("themeToggle").setAttribute("aria-checked",c==="dark");});
+XanaUI.initTheme();
 
 function esc(s){return window.XanaUI.esc(s);}
 let account=null;
@@ -712,7 +710,7 @@ function showDialog({title,body,confirmText="Confirm",danger=false,onConfirm}){
     +'<div style="font-size:.83rem;color:var(--muted);line-height:1.45;margin-bottom:16px">'+body+'</div>'
     +'<div id="dlgBtns" style="display:flex;gap:8px">'
     +'<button class="secondary" id="dlgCancel" style="flex:1">Cancel</button>'
-    +'<button id="dlgOk" class="'+(danger?"danger":"")+'" style="flex:1'+(danger?";background:rgba(220,38,38,.9)":"")+'">'+esc(confirmText)+'</button>'
+    +'<button id="dlgOk" class="'+(danger?"danger":"")+'" style="flex:1'+'">'+esc(confirmText)+'</button>'
     +'</div></div>';
   document.body.appendChild(ov);
   requestAnimationFrame(()=>{ov.style.opacity="1";ov.firstElementChild.style.transform="scale(1)";});
@@ -733,10 +731,9 @@ function showDialog({title,body,confirmText="Confirm",danger=false,onConfirm}){
 let _toastT=null;
 function toast(text,isErr){
   const t=document.createElement("div");
-  // Fixed colors, not theme vars -- var(--text) flips near-black/near-white
-  // per theme while this toast's text stays a hardcoded #fff, so the
-  // success case went invisible (white on white) in dark theme.
-  t.style.cssText="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:90;background:"+(isErr?"#dc2626":"#1f2937")+";color:#fff;padding:10px 18px;border-radius:999px;font-size:.82rem;font-weight:600;box-shadow:var(--shadow-lifted);opacity:0;transition:opacity .2s ease, transform .2s var(--ease-out)";
+  // Inverted surface: background and text swap together per theme, so the
+  // pair always contrasts (a fixed #fff on var(--text) went white-on-white).
+  t.style.cssText="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:90;background:"+(isErr?"var(--destructive)":"var(--foreground)")+";color:"+(isErr?"#fff":"var(--background)")+";padding:10px 18px;border-radius:999px;font-size:.82rem;font-weight:600;box-shadow:var(--shadow-lifted);opacity:0;transition:opacity .2s ease, transform .2s var(--ease-out)";
   t.textContent=text;
   document.body.appendChild(t);
   requestAnimationFrame(()=>{t.style.opacity="1";t.style.transform="translateX(-50%) translateY(-4px)";});

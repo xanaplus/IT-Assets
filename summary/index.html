@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("xana_theme")||"light")}catch(e){}</script>
+    <script>try{var __t=localStorage.getItem("xana_theme");if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t)}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
   <title>Asset Inventory Dashboard · Xana</title>
   <link rel="icon" href="/scanner-app/icon-192.png" />
   <link rel="stylesheet" href="/css/base.css" />
@@ -158,7 +158,7 @@
   table { width:100%; border-collapse:collapse; font-size:.82rem; }
   th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap; }
   th { color:var(--muted); font-weight:600; text-transform:uppercase; font-size:.7rem; letter-spacing:.04em; }
-  .pill { display:inline-block; padding:3px 10px; border-radius:999px; font-weight:600; font-size:.72rem; color:#fff; }
+  .pill { display:inline-block; padding:3px 10px; border-radius:999px; font-weight:600; font-size:.72rem; }
   .tbl-scroll { overflow:auto; max-height:480px; scroll-behavior:smooth; overscroll-behavior:contain; background:var(--panel); border-radius:12px; }
   @keyframes spin{to{transform:rotate(360deg)}}
   .errbox { background:var(--msg-err-bg); color:var(--msg-err-ink); border:1px solid color-mix(in oklch, var(--red) 30%, transparent); border-radius:var(--radius-lg); padding:16px; margin:20px 0; }
@@ -301,7 +301,7 @@
   document.getElementById("moreDialogClose")?.addEventListener("click",()=>moreDialog.close());
   moreDialog?.addEventListener("click",(e)=>{ if(e.target===moreDialog) moreDialog.close(); }); // backdrop click
 </script>
-  <script src="/scanner-app/lib/supabase.min.js"></script><script src="/js/supabase-client.js?v=17"></script><script src="/js/ui.js?v=17"></script><script src="/summary/app.js?v=15"></script>
+  <script src="/scanner-app/lib/supabase.min.js"></script><script src="/js/supabase-client.js?v=18"></script><script src="/js/ui.js?v=18"></script><script src="/summary/app.js?v=16"></script>
 </body>
 </html>
 

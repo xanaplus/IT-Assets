@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("xana_theme")||"light")}catch(e){}</script>
+<script>try{var __t=localStorage.getItem("xana_theme");if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t)}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
 <title>Assets - Detailed · Xana</title>
 <link rel="icon" href="/scanner-app/icon-192.png" />
 <script src="/scanner-app/lib/supabase.min.js"></script>
-<script src="/js/supabase-client.js?v=17"></script>
-<script src="/js/ui.js?v=17"></script>
+<script src="/js/supabase-client.js?v=18"></script>
+<script src="/js/ui.js?v=18"></script>
 <script src="/scanner-app/logic.js?v=17"></script>
 <script src="/scanner-app/lib/html5-qrcode.min.js"></script>
 <link rel="stylesheet" href="/css/base.css" />
@@ -91,7 +91,7 @@
   .fpop label{display:flex;gap:7px;align-items:center;font-size:.8rem;padding:4px 2px;cursor:pointer}
   .fpop label:hover{color:var(--accent)}
   .fpop .fbtns{display:flex;gap:6px;margin-top:8px}
-  .pill{padding:2px 8px;border-radius:999px;color:#fff;font-size:.65rem;font-weight:700;white-space:nowrap}
+  .pill{padding:2px 8px;border-radius:999px;font-size:.65rem;font-weight:600;white-space:nowrap}
   #authState{font-size:.75rem;color:var(--muted);margin-bottom:8px}
   .editrow{cursor:pointer;border-radius:6px;transition:background .12s ease}
   .editrow:hover{background:color-mix(in oklch, var(--accent) 6%, transparent)}
@@ -244,7 +244,7 @@
     <h2 id="addSheetTitle">+ Add Asset <button type="button" class="theme-toggle" id="addClose" aria-label="Close the add asset form">✕</button></h2>
     <label>Asset Tag *</label><input type="text" id="addTag" placeholder="e.g. MICL0048" />
     <label>Serial Number *</label><input type="text" id="addSerial" placeholder="Serial" />
-    <div id="serialWarn" style="display:none;font-size:.78rem;color:#ff8c00;margin-top:4px;line-height:1.4"></div>
+    <div id="serialWarn" style="display:none;font-size:.78rem;color:var(--orange);margin-top:4px;line-height:1.4"></div>
     <label>Model</label><input type="text" id="addModel" placeholder="Lenovo L13" list="modelList" autocomplete="off" />
     <datalist id="modelList"></datalist>
     <label>Asset Type</label><select id="addType"></select>
@@ -303,9 +303,7 @@
 
 <script>
 "use strict";
-const STORAGE_THEME="xana_theme";
-function applyTheme(){const s=localStorage.getItem(STORAGE_THEME)||"light";document.documentElement.setAttribute("data-theme",s);const t=document.getElementById("themeToggle");if(t)t.setAttribute("aria-checked",s==="dark");}
-applyTheme(); document.getElementById("themeToggle")?.addEventListener("click",()=>{const c=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",c);localStorage.setItem(STORAGE_THEME,c);document.getElementById("themeToggle").setAttribute("aria-checked",c==="dark");});
+XanaUI.initTheme();
 
 let account=null, allItems=[], filtered=[], sortKey="tag", sortDir=1, currentPage=0; const PAGE_SIZE=30;
 // ---------- Auth (single sign-in page at /login) ----------
@@ -393,8 +391,8 @@ function warrantyText(it){
   const w=warrantyInfo(it);
   if(!w)return "None";
   if(w.days>90)return w.expiry.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
-  if(w.days>0)return '<span style="color:#ff8c00">'+w.expiry.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})+" — expires in "+w.days+" days</span>";
-  return '<span style="color:#d13438">'+w.expiry.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})+" — EXPIRED</span>";
+  if(w.days>0)return '<span style="color:var(--orange)">'+w.expiry.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})+" — expires in "+w.days+" days</span>";
+  return '<span style="color:var(--red)">'+w.expiry.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})+" — EXPIRED</span>";
 }
 // ---------- column filters ----------
 const colFilters={type:new Set(),location:new Set(),status:new Set(),department:new Set()};
@@ -586,7 +584,7 @@ function renderTable(){
   const rows=slice.map((it,idx)=>`
     <tr data-idx="${start+idx}" tabindex="0" style="cursor:pointer" title="Open ${esc(it.tag||"asset")}">
       <td><b>${esc(it.tag)}</b></td><td>${esc(it.type)}</td><td>${esc(it.model)}</td><td>${esc(it.serial)}</td><td>${esc(it.employee)}</td><td>${esc(it.department||"")}</td><td>${esc(it.location)}</td>
-      <td><span class="pill" style="background:${statusColor(it.status)}">${esc(it.status)}</span></td>
+      <td><span class="pill" style="--c:${statusColor(it.status)}">${esc(it.status)}</span></td>
       <td>${esc(it.purchaseDate)}</td><td>${esc(it.condition||"")}</td>
     </tr>`).join("");
   main.innerHTML='<div class="card"><div style="margin-bottom:6px;font-size:.8rem;color:var(--muted)">Showing '+(start+1)+'–'+end+' of '+filtered.length+' (tap row for details)'+metaLine()+'</div><div class="tbl-scroll"><table><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div><div style="margin-top:8px;display:flex;gap:8px;align-items:center"><button class="btn secondary" id="prev" '+(currentPage===0?'disabled':'')+'>Prev</button><button class="btn secondary" id="next" '+(end>=filtered.length?'disabled':'')+'>Next</button><span style="margin-left:auto;font-size:.8rem;color:var(--muted)">Label sorts · funnel filters</span></div></div>';
@@ -639,7 +637,7 @@ function showDetail(it){
     +'</div>';
   const thumb=it.imageUrl?'<div class="thumb-wrap">'+heroImg+((w||admin)?heroBtns:'')+'</div>'
     :(w?'<button class="thumb-empty" id="imgEditBtn" type="button" title="Add photo" aria-label="Add a photo to this asset">+</button>':'');
-  const titleHtml='<h2>'+esc(it.tag||"Asset")+' <span class="pill" style="background:'+c+'">'+esc(it.status||"")+'</span></h2>';
+  const titleHtml='<h2>'+esc(it.tag||"Asset")+' <span class="pill" style="--c:'+c+'">'+esc(it.status||"")+'</span></h2>';
   const topHtml='<div class="detail-top">'+titleHtml+thumb+'</div>';
   const erow=w?"row editrow":"row";
   detail.innerHTML='<div class="card" id="assetCard">'+topHtml+
@@ -869,7 +867,7 @@ async function loadEvents(current,histPanel){
         const m=EV_META[r.event_type]||{icon:"•",label:r.event_type};
         const cost=r.cost!=null&&r.cost!==""?"<b>KES "+Number(r.cost).toLocaleString()+"</b> · ":"";
         const open=r.event_type==="issue"&&!r.resolved;
-        const badge=open?' <span class="pill" style="background:#dc2626;font-size:.6rem;padding:2px 7px">OPEN</span>':"";
+        const badge=open?' <span class="pill" style="--c:var(--red);font-size:.6rem;padding:2px 7px">OPEN</span>':"";
         // an open issue is actionable, so offer the close from where it shows
         const resolve=(open&&canWrite())?' <button class="btn secondary" data-resolve="'+r.id+'" style="padding:2px 9px;font-size:.68rem;margin-left:6px">Mark resolved</button>':"";
         return '<div class="hrow"><span class="hwhat"><b>'+esc(m.label)+'</b>'+badge+" — "+esc(r.description)+resolve+"<br/><span class=\"hwhen\">"+cost+esc(r.created_by||"—")+" · "+new Date(r.event_date).toLocaleDateString()+'</span></span></div>';
@@ -961,10 +959,9 @@ function toast(text,isErr,action){
   const t=document.createElement("div");
   const above=document.querySelectorAll(".app-toast").length;   // stack newest under older ones
   t.className="app-toast";
-  // Fixed colors, not theme vars -- var(--text) flips near-black/near-white
-  // per theme while this toast's text stays a hardcoded #fff, so the
-  // success case went invisible (white on white) in dark theme.
-  t.style.cssText="position:fixed;left:50%;bottom:"+(26+above*46)+"px;transform:translateX(-50%);z-index:90;background:"+(isErr?"#dc2626":"#1f2937")+";color:#fff;padding:10px 18px;border-radius:999px;font-size:.82rem;font-weight:600;box-shadow:0 20px 44px -18px rgba(11,18,32,.16);opacity:0;transition:opacity .2s ease, transform .2s var(--ease-out);display:flex;align-items:center;gap:4px;white-space:nowrap";
+  // Inverted surface: background and text swap together per theme, so the
+  // pair always contrasts (a fixed #fff on var(--text) went white-on-white).
+  t.style.cssText="position:fixed;left:50%;bottom:"+(26+above*46)+"px;transform:translateX(-50%);z-index:90;background:"+(isErr?"var(--destructive)":"var(--foreground)")+";color:"+(isErr?"#fff":"var(--background)")+";padding:10px 18px;border-radius:999px;font-size:.82rem;font-weight:600;box-shadow:0 20px 44px -18px rgba(11,18,32,.16);opacity:0;transition:opacity .2s ease, transform .2s var(--ease-out);display:flex;align-items:center;gap:4px;white-space:nowrap";
   const span=document.createElement("span");
   span.textContent=text;
   t.appendChild(span);
@@ -974,7 +971,7 @@ function toast(text,isErr,action){
     const btn=document.createElement("button");
     btn.type="button";
     btn.textContent=action.label;
-    btn.style.cssText="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 12px;border-radius:999px;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap";
+    btn.style.cssText="background:color-mix(in oklch, currentColor 18%, transparent);border:none;color:inherit;padding:4px 12px;border-radius:999px;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap";
     btn.addEventListener("click",()=>{action.onClick();t.style.opacity="0";setTimeout(()=>t.remove(),250);});
     t.appendChild(btn);
   }
@@ -1310,7 +1307,7 @@ function updateBundleSum(){
   const over=T!=null&&tower<0; // component prices exceed the total
   const fmt=n=>"KES "+Math.round(n).toLocaleString("en-US");
   bundleSumEl.textContent="Allocated "+fmt(sum+Math.max(0,tower))+(T!=null?" of "+fmt(T):"")+(incomplete?" — every component needs a price":"");
-  bundleSumEl.style.color=(over||incomplete)?"#fca5a5":"var(--muted)";
+  bundleSumEl.style.color=(over||incomplete)?"var(--red)":"var(--muted)";
 }
 // distribute the total across rows whose price the user has not manually edited (per-row dirty flag,
 // cleared only by resetBundle): non-dirty rows renormalize over the pool the tower leaves; dirty rows untouched.
@@ -1572,7 +1569,7 @@ function renderPeople(){
     return '<div class="card pcard'+(open?" open":"")+'">'+
       '<div class="phead" data-g="'+esc(key)+'" tabindex="0" aria-expanded="'+(open?"true":"false")+'"><div><span class="pname">'+esc(g.name)+'</span><span class="pcount">'+g.count+" asset"+(g.count===1?"":"s")+'</span></div><div style="display:flex;gap:8px;align-items:center">'+ret+'<span class="chev" aria-hidden="true">▶</span></div></div>'+
       '<div class="passets">'+rows.map(it=>
-        '<div class="prow" data-open="'+esc(String(it.id))+'" tabindex="0"><b>'+esc(it.tag||"#"+it.id)+'</b><span class="pserial">'+esc(it.serial||"")+'</span><span class="pill" style="background:'+statusColor(it.status)+'">'+esc(it.status||"—")+'</span><span class="popen">Open →</span></div>'
+        '<div class="prow" data-open="'+esc(String(it.id))+'" tabindex="0"><b>'+esc(it.tag||"#"+it.id)+'</b><span class="pserial">'+esc(it.serial||"")+'</span><span class="pill" style="--c:'+statusColor(it.status)+'">'+esc(it.status||"—")+'</span><span class="popen">Open →</span></div>'
       ).join("")+"</div></div>";
   }).join("");
 }
@@ -2090,7 +2087,7 @@ async function startApp(){
   }else{
     document.getElementById("btnScan").style.display="none";
     document.getElementById("btnAdd").style.display="none";
-    state.insertAdjacentHTML("beforeend",' <span class="pill" style="background:var(--muted);margin-left:6px" title="Your role can read the register but not change it">View only</span>');
+    state.insertAdjacentHTML("beforeend",' <span class="pill" style="--c:var(--muted);margin-left:6px" title="Your role can read the register but not change it">View only</span>');
   }
   // kick off data load + choices fetch in parallel; don't block the UI on choices
   const choicesP=(async()=>{

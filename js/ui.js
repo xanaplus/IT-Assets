@@ -55,8 +55,46 @@
     return CSV_DQ + s.split(CSV_DQ).join(CSV_DQ + CSV_DQ) + CSV_DQ;
   }
 
+  // ---- Theme ----------------------------------------------------------------
+  // Until the user picks one with the toggle, follow the device setting (and
+  // keep following it live). Each page's <head> runs the same resolution
+  // inline before first paint; this owns the toggle and later changes.
+  var THEME_KEY = "xana_theme";
+  var darkQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+
+  function storedTheme() {
+    try {
+      var t = localStorage.getItem(THEME_KEY);
+      return t === "dark" || t === "light" ? t : null;
+    } catch (e) { return null; }
+  }
+  function systemTheme() { return darkQuery && darkQuery.matches ? "dark" : "light"; }
+
+  function applyTheme(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    var tog = document.getElementById("themeToggle");
+    if (tog) tog.setAttribute("aria-checked", t === "dark");
+  }
+
+  function initTheme() {
+    applyTheme(storedTheme() || systemTheme());
+    if (darkQuery && darkQuery.addEventListener) {
+      darkQuery.addEventListener("change", function () { if (!storedTheme()) applyTheme(systemTheme()); });
+    }
+    var tog = document.getElementById("themeToggle");
+    if (tog && !tog.dataset.themeBound) {
+      tog.dataset.themeBound = "1";
+      tog.addEventListener("click", function () {
+        var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        applyTheme(next);
+        try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* private mode: still flips */ }
+      });
+    }
+  }
+
   window.XanaUI = {
     CURRENCY: CURRENCY,
+    initTheme: initTheme,
     esc: esc,
     money: money,
     moneyKpi: moneyKpi,

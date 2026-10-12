@@ -199,3 +199,17 @@ html {
   .page-boot { transition: none; }
   .page-boot .spin { animation: none; }
 }
+
+/* Status badges: tinted, not solid. Callers pass the status colour as --c
+   (style="--c:#16a34a"); text, fill and ring all derive from it, so every
+   status reads at the same contrast in both themes. */
+.pill {
+  --c: var(--muted);
+  color: color-mix(in oklch, var(--c) 72%, var(--foreground));
+  background: color-mix(in oklch, var(--c) 13%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--c) 30%, transparent);
+}
+[data-theme="dark"] .pill {
+  color: color-mix(in oklch, var(--c) 50%, white);
+  background: color-mix(in oklch, var(--c) 20%, transparent);
+}
