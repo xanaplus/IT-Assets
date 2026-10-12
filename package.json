@@ -3,7 +3,20 @@
   "private": true,
   "version": "1.0.0",
   "description": "Unified Xana Asset System - scanner + dashboard",
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "db:start": "node scripts/local-db.mjs start",
+    "db:reset": "node scripts/local-db.mjs reset",
+    "db:stop": "node scripts/local-db.mjs stop",
+    "db:schema": "node scripts/local-db.mjs schema"
+  },
   "dependencies": {
     "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "supabase": "^2.120.0"
+  },
+  "allowScripts": {
+    "supabase@2.120.0": true
   }
 }

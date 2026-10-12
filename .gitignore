@@ -1,6 +1,7 @@
 # Vercel
 .vercel/
 .env.local
+.env.development.local
 
 # Certificates & secrets — DO NOT COMMIT
 *.pfx

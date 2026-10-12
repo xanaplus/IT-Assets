@@ -5,8 +5,14 @@
 (function () {
   "use strict";
 
-  const SUPABASE_URL = "https://irqrnyixizzorvfmtvag.supabase.co";
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_cS0GIdneT3Xccuyt0AiHWw_XBuzeBA_";
+  // On localhost the pages talk to the Docker Supabase from `npm run db:start`
+  // (scripts/local-db.mjs), never production. The local key is the Supabase
+  // CLI's fixed demo anon key - public and identical on every machine.
+  const IS_LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  const SUPABASE_URL = IS_LOCAL ? "http://127.0.0.1:55421" : "https://irqrnyixizzorvfmtvag.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = IS_LOCAL
+    ? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
+    : "sb_publishable_cS0GIdneT3Xccuyt0AiHWw_XBuzeBA_";
   const ADMIN_EMAIL = "it@xanalife.com";
 
   // Supabase column <-> SharePoint field internal name

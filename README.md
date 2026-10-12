@@ -153,15 +153,46 @@ libuv assertion during teardown; the migration has already applied.
 
 ## Local development
 
+Test everything locally before pushing — `main` deploys straight to production.
+Needs Docker Desktop running.
+
 ```bash
-py -m http.server 8100      # or any static server from the repo root
-# http://localhost:8100/          landing
-# http://localhost:8100/assets    register
+npm install          # once; includes the Supabase CLI
+npm run db:start     # local Supabase in Docker: schema, test data, test logins
+npm run dev          # http://localhost:5180
 ```
 
-Pages talk to the live Supabase project, so you are working against real data.
-The two `/api` functions (SharePoint sync, admin user management) need
-`vercel dev` and the environment below.
+| | |
+|---|---|
+| Site | http://localhost:5180 (same rewrites, redirects and hidden files as Vercel; runs `/api/*`) |
+| Logins | `admin@xana.local` (super_admin), `scanner@xana.local`, `viewer@xana.local` — password `local-test-only`, or a magic link from the inbox |
+| Sign-in emails | http://localhost:55424 |
+| Database UI | http://localhost:55423 (Supabase Studio) |
+
+**On localhost the pages never touch production.** `js/supabase-client.js`
+switches to the local stack whenever the host is `localhost`/`127.0.0.1`, and
+`.env.development.local` (written by `db:start`) has no SharePoint
+credentials, so `/api/sharepoint-sync` cannot write to the live list. Any
+static server on localhost therefore needs `db:start` running too.
+
+| Command | |
+|---|---|
+| `npm run db:reset` | Wipe and reload schema + test data (start fresh) |
+| `npm run db:stop` | Stop the containers |
+| `npm run db:schema` | Re-copy the schema from production after a migration lands there (structure only; needs `SUPABASE_DB_URL` in `.env.local`) |
+
+What loads, in order (`supabase/config.toml` → `[db.seed]`):
+`supabase/local/schema.sql` (production's structure — no rows),
+`supabase/local/seed.sql` (choices from the migrations + the 36 fixture assets
+with local-only prices and statuses), `supabase/local/storage.sql` (bucket
+rules replayed from the storage migrations). Ports are 554xx so this runs
+beside other local Supabase projects on the default 543xx.
+
+**Try a migration locally first**, then apply it to production:
+
+```bash
+docker exec -i supabase_db_asset-scanner-local psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/00NN_name.sql
+```
 
 Tests for the shared logic:
 
