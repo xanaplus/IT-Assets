@@ -14,6 +14,111 @@
    on every page; a page redeclaring it still wins. */
 :root { --ease-out: cubic-bezier(0.32, 0.72, 0, 1); }
 
+/* ---------------------------------------------------------------------------
+   Design tokens — shadcn/ui "neutral" theme as customised by Xana Ledger
+   (XanaLedger/src/index.css): Xana Green primary, amber secondary, slate
+   surfaces. Single source of truth for colour, radius and elevation; pages
+   only declare tokens that are genuinely page-specific (chart hues, motion).
+
+   Two shadcn names clash with this app's older vocabulary, so they are NOT
+   declared under their shadcn meaning:
+     --muted   here = muted TEXT   (shadcn: --muted-foreground)
+     --accent  here = brand colour (shadcn: --primary)
+   Every page sets html[data-theme] before first paint, so light is the
+   fallback only.
+   --------------------------------------------------------------------------- */
+:root, [data-theme="light"] {
+  /* shadcn tokens */
+  --background: #f8fafc;                 /* slate-50  */
+  --foreground: #0f172a;                 /* slate-900 */
+  --card: #ffffff;
+  --card-foreground: var(--foreground);
+  --popover: #ffffff;
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.45 0.15 160);       /* Xana Green */
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.85 0.15 85);      /* Xana Amber */
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted-foreground: #64748b;           /* slate-500 */
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #e2e8f0;                     /* slate-200 */
+  --input: #e2e8f0;
+  --ring: oklch(0.45 0.15 160 / 45%);
+  --chart-1: oklch(0.45 0.15 160);
+  --chart-2: oklch(0.85 0.15 85);
+  --chart-3: oklch(0.6 0.12 230);
+  --chart-4: oklch(0.55 0.15 300);
+  --chart-5: oklch(0.62 0.17 30);
+  --radius-sm: 0.375rem;   /* 6px  */
+  --radius-md: 0.5rem;     /* 8px  */
+  --radius-lg: 0.625rem;   /* 10px: buttons, inputs */
+  --radius-xl: 0.875rem;   /* 14px: cards */
+  --radius: var(--radius-xl);   /* pages size cards with var(--radius) */
+
+  /* app vocabulary, derived */
+  --bg: var(--background);
+  --text: var(--foreground);
+  --muted: var(--muted-foreground);
+  --panel: var(--card);
+  --card2: #f1f5f9;                      /* slate-100: raised/inset fill */
+  --panel2: var(--card2);
+  --shell: #f1f5f9;
+  --line: var(--border);
+  --hairline: color-mix(in oklch, var(--foreground) 10%, transparent);
+  --accent: var(--primary);
+  --accent-ink: var(--primary-foreground);
+  --accent-glow: color-mix(in oklch, var(--primary) 14%, transparent);
+  --focus-ring: var(--ring);
+  --green: #059669;                      /* emerald-600 */
+  --orange: #d97706;                     /* amber-600 */
+  --red: #dc2626;                        /* red-600 */
+  --msg-info-bg: color-mix(in oklch, var(--primary) 8%, transparent);
+  --msg-info-ink: #047857;               /* emerald-700 */
+  --msg-err-bg: #fef2f2;                 /* red-50 */
+  --msg-err-ink: #b91c1c;
+
+  /* elevation: shadcn is flat — a 1px ring plus a whisper of shadow */
+  --shadow-ambient: 0 1px 2px rgb(15 23 42 / .05);
+  --shadow-lifted: 0 4px 6px -1px rgb(15 23 42 / .08), 0 12px 32px -12px rgb(15 23 42 / .18);
+  --shadow: var(--shadow-lifted);
+  --inner-highlight: inset 0 0 0 0 transparent;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.129 0.042 264.695);   /* slate-950 */
+  --foreground: oklch(0.984 0.003 247.858);   /* slate-50  */
+  --card: oklch(0.208 0.042 265.755);         /* slate-900 */
+  --popover: oklch(0.208 0.042 265.755);
+  --primary: oklch(0.72 0.15 160);            /* Xana Green, lifted */
+  --primary-foreground: oklch(0.2 0.04 160);
+  --secondary: oklch(0.8 0.14 85);
+  --secondary-foreground: oklch(0.2 0.03 85);
+  --muted-foreground: oklch(0.704 0.04 256.788);   /* slate-400 */
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.72 0.15 160 / 60%);
+  --chart-1: oklch(0.72 0.15 160);
+  --chart-2: oklch(0.8 0.14 85);
+  --chart-3: oklch(0.7 0.12 230);
+  --chart-4: oklch(0.65 0.15 300);
+  --chart-5: oklch(0.7 0.16 30);
+
+  --card2: oklch(0.279 0.041 260.031);        /* slate-800 */
+  --shell: oklch(0.129 0.042 264.695);
+  --hairline: oklch(1 0 0 / 8%);
+  --green: #34d399;                           /* emerald-400 */
+  --orange: #fbbf24;                          /* amber-400 */
+  --red: #f87171;                             /* red-400 */
+  --msg-info-ink: #6ee7b7;
+  --msg-err-bg: color-mix(in oklch, #450a0a 70%, transparent);   /* red-950 */
+  --msg-err-ink: #fca5a5;
+
+  --shadow-ambient: 0 1px 2px rgb(0 0 0 / .3);
+  --shadow-lifted: 0 4px 6px -1px rgb(0 0 0 / .3), 0 16px 40px -12px rgb(0 0 0 / .55);
+}
+
 /* --- theme switch: sliding sun/moon pill (state keyed off html[data-theme]) --- */
 .theme-switch{position:relative;display:inline-flex;align-items:center;width:62px;height:30px;padding:3px;border:1px solid var(--hairline);border-radius:999px;background:var(--card2);cursor:pointer;box-shadow:var(--shadow-ambient),var(--inner-highlight);transition:background-color .5s var(--ease-out)}
 .ts-opt{position:relative;z-index:1;flex:1;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);transition:color .5s var(--ease-out)}
@@ -22,6 +127,9 @@ html:not([data-theme="dark"]) .ts-opt.ts-sun{color:var(--accent)}
 html[data-theme="dark"] .ts-opt.ts-moon{color:var(--accent)}
 .ts-thumb{position:absolute;top:3px;left:3px;width:24px;height:22px;border-radius:999px;background:var(--card);box-shadow:var(--shadow-ambient),inset 0 1px 1px rgba(255,255,255,.35);transition:transform .5s var(--ease-out)}
 html[data-theme="dark"] .ts-thumb{transform:translateX(30px)}
+
+/* Form controls default to the system font; keep them on Geist like the rest. */
+button, input, select, textarea { font-family: inherit; }
 
 /* Tabular figures wherever numbers align in columns */
 table, .kpi .value, .fin-grid .item .v, .health .item .v {

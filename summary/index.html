@@ -9,31 +9,13 @@
   <link rel="stylesheet" href="/css/base.css" />
   <link rel="stylesheet" href="/css/nav.css" />
   <style>
+  /* Colour, radius and elevation tokens come from /css/base.css. */
   :root {
-    --bg:#f7f8fa; --panel:#ffffff; --panel2:#f1f4f8; --line:#e6eaf0;
-    --text:#0b1220; --muted:#5c6b80; --accent:#3b82f6; --accent2:#38bdf8;
-    --green:#16a34a; --orange:#d97706; --red:#dc2626; --grey:#64748b; --purple:#a855f7;
-    --book:#0d9488; --radius:18px;
+    --accent2:#38bdf8; --grey:#64748b; --purple:#a855f7; --book:#0d9488;
     --ease-out:cubic-bezier(0.32,0.72,0,1); --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
     --duration-fast:140ms; --duration-base:240ms; --duration-slow:420ms;
-    /* high-end surface system */
-    --shell:#eef1f5;
-    --hairline:rgba(11,18,32,.06);
-    --shadow-ambient:0 1px 2px rgba(11,18,32,.04), 0 8px 24px -12px rgba(11,18,32,.10);
-    --shadow-lifted:0 2px 4px rgba(11,18,32,.05), 0 20px 44px -18px rgba(11,18,32,.16);
-    --inner-highlight:inset 0 1px 0 rgba(255,255,255,.85);
   }
-  [data-theme="dark"] {
-    --bg:#0a0c10; --panel:#14171c; --panel2:#1a1e25; --line:#232830;
-    --text:#f3f4f6; --muted:#9aa5b5; --accent:#60a5fa; --accent2:#38bdf8;
-    --green:#34d399; --orange:#fbbf24; --red:#f87171; --grey:#94a3b8; --purple:#c084fc;
-    --book:#2dd4bf; --radius:18px;
-    --shell:#0d1014;
-    --hairline:rgba(255,255,255,.07);
-    --shadow-ambient:0 1px 2px rgba(0,0,0,.25), 0 8px 24px -12px rgba(0,0,0,.35);
-    --shadow-lifted:0 2px 4px rgba(0,0,0,.3), 0 20px 44px -18px rgba(0,0,0,.5);
-    --inner-highlight:inset 0 1px 0 rgba(255,255,255,.06);
-  }
+  [data-theme="dark"] { --grey:#94a3b8; --purple:#c084fc; --book:#2dd4bf; }
   /* navbar styles live in /css/nav.css */
   /* theme-toggle styled in /css/nav.css */
   .theme-toggle:hover { background:var(--card2); }
@@ -54,7 +36,7 @@
   .sub { color:var(--muted); font-size:.85rem; margin-top:3px; }
    .hdr-right { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
   .meta { font-size:.8rem; color:var(--muted); text-align:right; }
-  button { background:var(--accent); color:#fff; border:0; border-radius:9px; padding:9px 14px; font-size:.85rem; font-weight:600; cursor:pointer; }
+  button { background:var(--accent); color:var(--accent-ink); border:0; border-radius:var(--radius-lg); padding:9px 14px; font-size:.85rem; font-weight:500; cursor:pointer; }
   button:disabled { opacity:.5; cursor:default; }
   /* Button hierarchy — plain `button` above is the primary/solid style.
      Everything that isn't the main call to action on its panel should
@@ -179,7 +161,7 @@
   .pill { display:inline-block; padding:3px 10px; border-radius:999px; font-weight:600; font-size:.72rem; color:#fff; }
   .tbl-scroll { overflow:auto; max-height:480px; scroll-behavior:smooth; overscroll-behavior:contain; background:var(--panel); border-radius:12px; }
   @keyframes spin{to{transform:rotate(360deg)}}
-  .errbox { background:rgba(239,68,68,.12); color:#fecaca; border:1px solid #7f1d1d; border-radius:12px; padding:16px; margin:20px 0; }
+  .errbox { background:var(--msg-err-bg); color:var(--msg-err-ink); border:1px solid color-mix(in oklch, var(--red) 30%, transparent); border-radius:var(--radius-lg); padding:16px; margin:20px 0; }
   .loading { text-align:center; color:var(--muted); padding:60px 0; }
   footer { margin-top:24px; color:var(--muted); font-size:.72rem; text-align:center; }
   .spinner { width:34px; height:34px; border:3px solid var(--line); border-top-color:var(--accent); border-radius:50%; margin:0 auto 12px; animation:spin .8s linear infinite; }

@@ -12,19 +12,9 @@
   <link rel="stylesheet" href="/css/base.css" />
   <link rel="stylesheet" href="/css/nav.css" />
   <style>
-    :root { --bg:#f7f8fa; --card:#ffffff; --card2:#f1f4f8; --border:#e6eaf0; --accent:#16a34a; --blue:#2563eb; --text:#0b1220; --muted:#5c6b80; --red:#dc2626; --radius:16px;
-      --hairline:rgba(11,18,32,.06);
-      --shadow-ambient:0 1px 2px rgba(11,18,32,.04), 0 8px 24px -12px rgba(11,18,32,.10);
-      --shadow-lifted:0 2px 4px rgba(11,18,32,.05), 0 20px 44px -18px rgba(11,18,32,.16);
-      --inner-highlight:inset 0 1px 0 rgba(255,255,255,.85);
-      --ease-out:cubic-bezier(0.32,0.72,0,1);
-    }
-    [data-theme="dark"] { --bg:#0a0c10; --card:#14171c; --card2:#1a1e25; --border:#232830; --text:#f3f4f6; --muted:#9aa5b5;
-      --hairline:rgba(255,255,255,.07);
-      --shadow-ambient:0 1px 2px rgba(0,0,0,.25), 0 8px 24px -12px rgba(0,0,0,.35);
-      --shadow-lifted:0 2px 4px rgba(0,0,0,.3), 0 20px 44px -18px rgba(0,0,0,.5);
-      --inner-highlight:inset 0 1px 0 rgba(255,255,255,.06);
-    }
+    /* Colour, radius and elevation tokens come from /css/base.css. */
+    :root { --blue:#2563eb; --ease-out:cubic-bezier(0.32,0.72,0,1); }
+    [data-theme="dark"] { --blue:#60a5fa; }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:"Geist","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
     /* navbar styles live in /css/nav.css */
@@ -35,15 +25,15 @@
     .card h3{font-size:.95rem;font-weight:600;letter-spacing:-.01em;margin-bottom:12px}
     input[type=text],input[type=email],select{padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.9rem}
     input:focus,select:focus{outline:none;border-color:var(--accent)}
-    button{border:0;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff}
+    button{border:0;border-radius:var(--radius-lg);padding:9px 14px;font-weight:500;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
     button:hover{filter:brightness(1.08)}
     button.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
     button.secondary:hover{border-color:var(--muted);filter:none}
     /* visibility governed by /css/nav.css; this is layout only */
     .menu-button{align-items:center;gap:6px;padding:8px 12px;font-size:.82rem}
     .menu-button .icon{font-size:1rem}
-    button.danger{background:#dc2626;color:#fff}
-    button.danger:hover{background:#b91c1c;filter:none}
+    button.danger{background:var(--destructive);color:#fff}
+    button.danger:hover{filter:brightness(.92)}
     button.small{padding:4px 10px;font-size:.7rem;border-radius:999px;font-weight:500}
     button:disabled{opacity:.55}
     button:active{transform:scale(.98)}
@@ -54,8 +44,8 @@
     label.chk{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;color:var(--muted);margin-right:10px;cursor:pointer}
     .msg{margin-top:10px;padding:10px;border-radius:10px;text-align:center;font-size:.85rem;display:none}
     .msg.show{display:block}
-    .err{background:rgba(209,52,56,.12);color:#dc2626}
-    .ok{background:rgba(34,197,94,.12);color:#16a34a}
+    .err{background:var(--msg-err-bg);color:var(--msg-err-ink)}
+    .ok{background:var(--msg-info-bg);color:var(--msg-info-ink)}
     .info{background:rgba(37,99,235,.10);color:var(--blue)}
     /* wraps every dynamically-rendered <table> (users/bin/docs/sync/audit) so a
        wide table scrolls within its own box on mobile instead of blowing
@@ -203,7 +193,7 @@
 <div class="main">
   <div id="boot" style="position:fixed;inset:0;z-index:99;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .25s ease">
     <img src="/scanner-app/xana-logo.png" alt="" style="height:52px;opacity:.9" />
-    <div style="width:22px;height:22px;border:3px solid var(--border);border-top-color:#16a34a;border-radius:50%;animation:spin .8s linear infinite"></div>
+    <div style="width:22px;height:22px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite"></div>
     <div style="color:var(--muted);font-size:.85rem">Checking your session…</div>
     <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
   </div>
@@ -717,7 +707,7 @@ function showDialog({title,body,confirmText="Confirm",danger=false,onConfirm}){
   const ov=document.createElement("div");
   ov.id="modalOv";
   ov.style.cssText="position:fixed;inset:0;z-index:80;background:rgba(10,12,16,.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s ease";
-  ov.innerHTML='<div role="dialog" style="background:var(--card);border:1px solid var(--hairline);border-radius:16px;box-shadow:var(--shadow-lifted);padding:22px;width:340px;max-width:90vw;text-align:center;transform:scale(.96);transition:transform .18s var(--ease-out)">'
+  ov.innerHTML='<div role="dialog" style="background:var(--card);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow-lifted);padding:22px;width:340px;max-width:90vw;text-align:center;transform:scale(.96);transition:transform .18s var(--ease-out)">'
     +'<div style="font-weight:700;font-size:.95rem;margin-bottom:8px">'+esc(title)+'</div>'
     +'<div style="font-size:.83rem;color:var(--muted);line-height:1.45;margin-bottom:16px">'+body+'</div>'
     +'<div id="dlgBtns" style="display:flex;gap:8px">'
@@ -784,7 +774,7 @@ function showResetDialog(userId){
   const ov=document.createElement("div");
   ov.id="modalOv";
   ov.style.cssText="position:fixed;inset:0;z-index:80;background:rgba(10,12,16,.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s ease";
-  ov.innerHTML='<div role="dialog" style="background:var(--card);border:1px solid var(--hairline);border-radius:16px;box-shadow:var(--shadow-lifted);padding:22px;width:360px;max-width:90vw;transform:scale(.96);transition:transform .18s var(--ease-out)">'
+  ov.innerHTML='<div role="dialog" style="background:var(--card);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow-lifted);padding:22px;width:360px;max-width:90vw;transform:scale(.96);transition:transform .18s var(--ease-out)">'
     +'<div style="font-weight:700;font-size:.95rem;margin-bottom:6px">Reset password</div>'
     +'<div style="font-size:.8rem;color:var(--muted);margin-bottom:10px">Set a temporary password. Share it in person or by phone — the user must choose their own at next sign-in.</div>'
     +'<input type="text" id="rpw" placeholder="temporary password (min 8 chars)" autocomplete="off" style="width:100%;margin-bottom:14px"/>'

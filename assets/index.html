@@ -15,28 +15,16 @@
   <link rel="stylesheet" href="/css/nav.css" />
 <style>
   :root {
-    --bg:#f7f8fa; --card:#ffffff; --card2:#f1f4f8; --border:#e6eaf0; --accent:#16a34a; --accent2:#3b82f6; --text:#0b1220; --muted:#5c6b80; --red:#dc2626; --green:#16a34a; --orange:#d97706; --book:#0d9488; --radius:16px;
-    --line:var(--border); --panel:var(--card);   /* aliases so css/nav.css's var(--line)/var(--panel) resolve here */
+    /* Colour, radius and elevation tokens come from /css/base.css. */
+    --accent2:#3b82f6; --book:#0d9488;
     --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
     --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     --ease-sharp: cubic-bezier(0.4, 0, 0.2, 1);
     --duration-fast: 140ms;
     --duration-base: 240ms;
     --duration-slow: 420ms;
-    /* high-end surface system */
-    --hairline:rgba(11,18,32,.06);
-    --shadow-ambient:0 1px 2px rgba(11,18,32,.04), 0 8px 24px -12px rgba(11,18,32,.10);
-    --shadow-lifted:0 2px 4px rgba(11,18,32,.05), 0 20px 44px -18px rgba(11,18,32,.16);
-    --inner-highlight:inset 0 1px 0 rgba(255,255,255,.85);
   }
-  [data-theme="dark"] {
-    --bg:#0a0c10; --card:#14171c; --card2:#1a1e25; --border:#232830; --accent:#34d399; --accent2:#60a5fa; --text:#f3f4f6; --muted:#9aa5b5; --red:#f87171; --green:#34d399; --orange:#fbbf24; --book:#2dd4bf; --radius:16px;
-    --line:var(--border); --panel:var(--card);
-    --hairline:rgba(255,255,255,.07);
-    --shadow-ambient:0 1px 2px rgba(0,0,0,.25), 0 8px 24px -12px rgba(0,0,0,.35);
-    --shadow-lifted:0 2px 4px rgba(0,0,0,.3), 0 20px 44px -18px rgba(0,0,0,.5);
-    --inner-highlight:inset 0 1px 0 rgba(255,255,255,.06);
-  }
+  [data-theme="dark"] { --accent2:#60a5fa; --book:#2dd4bf; }
   *{box-sizing:border-box;margin:0;padding:0}
   
   body{font-family:"Geist","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
@@ -52,21 +40,21 @@
      mobile display:inline-flex, are css/nav.css's job entirely -- this
      page used to re-declare a whole conflicting full-height-left-drawer
      layout here, which fought nav.css property-by-property and overlapped
-     the navbar itself. Now that --line/--panel are aliased above, nav.css's
+     the navbar itself. Now that --line/--panel are aliased in css/base.css, nav.css's
      own styling resolves correctly here too, so there's nothing left to
      override. (.menu-button's shape/color styling above stays local --
      that's legitimate per-page button content, not a nav.css concern.) */
   h1{font-size:1.25rem;margin-bottom:4px}
   p.sub{color:var(--muted);font-size:.82rem;margin-bottom:14px}
   .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-  input,select{padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.9rem}
-  input:focus,select:focus{outline:none;border-color:var(--accent)}
+  input,select{padding:9px 12px;border-radius:var(--radius-lg);border:1px solid var(--input);background:var(--card);color:var(--text);font-size:.9rem}
+  input:focus,select:focus{outline:none;border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent)}
   #search{flex:1;min-width:200px}
-  button{border:0;border-radius:8px;padding:10px 14px;font-weight:600;cursor:pointer}
-  .btn{background:var(--accent);color:#fff}
-  .btn:hover{filter:brightness(1.08)}
+  button{border:0;border-radius:var(--radius-lg);padding:9px 14px;font-weight:500;cursor:pointer}
+  .btn{background:var(--accent);color:var(--accent-ink)}
+  .btn:hover{filter:brightness(1.1)}
   .btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
-  .btn.secondary:hover{border-color:var(--muted)}
+  .btn.secondary:hover{background:var(--card2)}
   .btn.book{background:var(--book);color:#fff}
   .card{background:var(--card);border:1px solid var(--hairline);border-radius:var(--radius);padding:20px;margin-top:14px;box-shadow:var(--shadow-ambient), var(--inner-highlight)}
   /* detail card product image — small thumb beside the title */
@@ -82,15 +70,15 @@
   .icon-btn:hover{background:rgba(20,24,30,.9)}
   .thumb-empty{width:84px;height:84px;border-radius:10px;border:1.5px dashed var(--border);background:transparent;color:var(--muted);font-size:1.6rem;font-weight:400;cursor:pointer;flex:0 0 auto}
   .thumb-empty:hover{border-color:var(--accent);color:var(--accent)}
-  .msg{padding:10px;border-radius:8px;text-align:center;font-size:.85rem}
-  .err{background:rgba(209,52,56,.12);color:#fca5a5;border:1px solid rgba(209,52,56,.2)}
-  .ok{background:rgba(34,197,94,.12);color:#86efac;border:1px solid rgba(34,197,94,.2)}
-  .info{background:rgba(22,163,74,.08);color:var(--muted);border:1px solid var(--border)}
+  .msg{padding:10px;border-radius:var(--radius-lg);text-align:center;font-size:.85rem}
+  .err{background:var(--msg-err-bg);color:var(--msg-err-ink);border:1px solid color-mix(in oklch, var(--red) 25%, transparent)}
+  .ok{background:var(--msg-info-bg);color:var(--msg-info-ink);border:1px solid color-mix(in oklch, var(--green) 25%, transparent)}
+  .info{background:var(--msg-info-bg);color:var(--muted);border:1px solid var(--border)}
   table{width:100%;border-collapse:collapse;font-size:.78rem}
   th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
   th{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer}
   th:hover{color:var(--text)}
-  .tbl-scroll{overflow:auto;max-height:520px;border:1px solid var(--hairline);border-radius:14px;scroll-behavior:smooth;background:var(--card);box-shadow:var(--shadow-ambient), var(--inner-highlight);overscroll-behavior:auto}   /* chain to the page at top/bottom */
+  .tbl-scroll{overflow:auto;max-height:520px;border:1px solid var(--hairline);border-radius:var(--radius);scroll-behavior:smooth;background:var(--card);box-shadow:var(--shadow-ambient), var(--inner-highlight);overscroll-behavior:auto}   /* chain to the page at top/bottom */
   thead th{position:relative;white-space:nowrap}
   th .fwrap{display:inline-flex;align-items:center;margin-left:4px}
   button.funnel{background:none;border:none;color:var(--muted);cursor:pointer;padding:2px;line-height:1;opacity:.7;display:inline-flex;align-items:center;gap:3px}
@@ -98,7 +86,7 @@
   button.funnel.active{color:var(--accent);opacity:1}
   button.funnel svg{display:block}
   button.funnel .fcount{font-size:.62rem;font-weight:700}
-  .fpop{position:absolute;z-index:60;background:var(--card);border:1px solid var(--hairline);border-radius:14px;padding:12px;box-shadow:var(--shadow-lifted), var(--inner-highlight);min-width:180px;max-height:260px;overflow:auto;text-align:left}
+  .fpop{position:absolute;z-index:60;background:var(--popover);border:1px solid var(--hairline);border-radius:var(--radius-lg);padding:12px;box-shadow:var(--shadow-lifted), var(--inner-highlight);min-width:180px;max-height:260px;overflow:auto;text-align:left}
   .fpop .ftitle{font-weight:600;font-size:.72rem;margin-bottom:6px;text-transform:capitalize;color:var(--muted)}
   .fpop label{display:flex;gap:7px;align-items:center;font-size:.8rem;padding:4px 2px;cursor:pointer}
   .fpop label:hover{color:var(--accent)}
@@ -106,19 +94,19 @@
   .pill{padding:2px 8px;border-radius:999px;color:#fff;font-size:.65rem;font-weight:700;white-space:nowrap}
   #authState{font-size:.75rem;color:var(--muted);margin-bottom:8px}
   .editrow{cursor:pointer;border-radius:6px;transition:background .12s ease}
-  .editrow:hover{background:rgba(22,163,74,.06)}
+  .editrow:hover{background:color-mix(in oklch, var(--accent) 6%, transparent)}
   .editrow:hover>span:first-child{color:var(--text)}
   .editrow:hover>span:last-child::after{content:" ✎";font-size:.7rem;color:var(--accent)}
   /* touch/keyboard devices never hover, so the "this is editable" ✎ has to be
      always-on there instead of appearing only under a pointer */
   @media(hover:none){.editrow>span:last-child::after{content:" ✎";font-size:.7rem;color:var(--accent)}}
-  .inlineedit{max-width:220px;padding:6px 8px;font-size:.85rem;border-radius:8px;border:1px solid var(--accent);background:var(--card);color:var(--text)}
+  .inlineedit{max-width:220px;padding:6px 8px;font-size:.85rem;border-radius:var(--radius-md);border:1px solid var(--ring);background:var(--card);color:var(--text)}
   .hint{font-size:.72rem;color:var(--muted);margin-top:6px}
   .detail-actions{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .detail-actions .btn,.detail-actions a.btn{flex:0 1 auto;min-width:0;text-align:center;padding:9px 14px;font-size:.82rem;border-radius:10px}
+  .detail-actions .btn,.detail-actions a.btn{flex:0 1 auto;min-width:0;text-align:center;padding:9px 14px;font-size:.82rem;border-radius:var(--radius-lg)}
   .detail-actions .spacer{flex:1}
-  .detail-actions .btn.danger{background:rgba(220,38,38,.08);color:#dc2626;border:1px solid transparent}
-  .detail-actions .btn.danger:hover{background:rgba(220,38,38,.15)}
+  .detail-actions .btn.danger{background:color-mix(in oklch, var(--destructive) 10%, transparent);color:var(--destructive);border:1px solid transparent}
+  .detail-actions .btn.danger:hover{background:color-mix(in oklch, var(--destructive) 20%, transparent)}
   .hrow{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px dashed var(--border);font-size:.8rem;flex-wrap:wrap}
   .hwho{color:var(--accent);font-weight:600;min-width:180px}
   .hwhat{flex:1;min-width:200px}
@@ -137,14 +125,13 @@
   .sheet.open .sheet-backdrop{opacity:1}
   /* Tinted panel - a quiet step down from the page surface in light mode,
      a deeper well in dark mode - so white inputs read as raised cores. */
-  .sheet-panel{position:absolute;right:0;top:0;bottom:0;width:480px;max-width:92vw;background:var(--card2);border-left:1px solid var(--hairline);box-shadow:var(--shadow-lifted);padding:22px;overflow:auto;transform:translateX(100%);transition:transform var(--duration-slow) var(--ease-spring)}
-  [data-theme="dark"] .sheet-panel{background:#12151c}
+  .sheet-panel{position:absolute;right:0;top:0;bottom:0;width:480px;max-width:92vw;background:var(--bg);border-left:1px solid var(--hairline);box-shadow:var(--shadow-lifted);padding:22px;overflow:auto;transform:translateX(100%);transition:transform var(--duration-slow) var(--ease-spring)}
   .sheet.open .sheet-panel{transform:translateX(0)}
   .sheet h2{font-size:1rem;font-weight:700;letter-spacing:-.01em;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
   .sheet-panel > label{font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 5px;display:block}
   .sheet input,.sheet select{width:100%;margin-bottom:6px;background:var(--card)}
-  [data-theme="dark"] .sheet input,[data-theme="dark"] .sheet select{background:#0d1014}
-  .img-drop{border:1px dashed var(--border);border-radius:10px;padding:12px;text-align:center;background:var(--card);cursor:pointer}
+  [data-theme="dark"] .sheet input,[data-theme="dark"] .sheet select{background:color-mix(in oklch, var(--input) 30%, transparent)}
+  .img-drop{border:1px dashed var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center;background:var(--card);cursor:pointer}
   .form-actions{display:flex;gap:8px;margin-top:14px}
   .form-actions button{flex:1}
   /* camera viewfinder: dark bezel both themes, soft inner corners */
@@ -173,8 +160,8 @@
   body::after{content:"";position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.04;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
   :focus-visible{outline:2px solid color-mix(in srgb,var(--accent) 65%,transparent);outline-offset:2px}
-  .toolbar{background:color-mix(in srgb,var(--card) 55%,transparent);border:1px solid var(--hairline);border-radius:20px;padding:8px;box-shadow:var(--shadow-ambient),var(--inner-highlight)}
-  .toolbar input#search{background:var(--card);border-radius:13px}
+  .toolbar{background:color-mix(in srgb,var(--card) 55%,transparent);border:1px solid var(--hairline);border-radius:var(--radius);padding:8px;box-shadow:var(--shadow-ambient),var(--inner-highlight)}
+  .toolbar input#search{background:var(--card);border-radius:var(--radius-lg)}
   .seg{display:inline-flex;background:var(--card2);border:1px solid var(--hairline);border-radius:999px;padding:3px;gap:2px}
   .seg button{border:0;background:transparent;border-radius:999px;padding:8px 16px;font:inherit;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;transition:color .3s var(--ease-out),background-color .3s var(--ease-out),box-shadow .3s var(--ease-out)}
   .seg button.active{background:var(--card);color:var(--text);box-shadow:var(--shadow-ambient)}
@@ -352,7 +339,7 @@ function showConfirm(title,bodyHtml,okLabel,okColor,onOk){
   const ov=document.createElement("div");
   ov.id="delModal";
   ov.style.cssText="position:fixed;inset:0;z-index:80;background:rgba(10,12,16,.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s ease";
-  ov.innerHTML='<div role="dialog" style="background:var(--card);border:1px solid var(--hairline);border-radius:16px;box-shadow:0 20px 44px -18px rgba(11,18,32,.16);padding:22px;width:340px;max-width:90vw;text-align:center;transform:scale(.96);transition:transform .18s var(--ease-out)">'
+  ov.innerHTML='<div role="dialog" style="background:var(--card);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow-lifted);padding:22px;width:340px;max-width:90vw;text-align:center;transform:scale(.96);transition:transform .18s var(--ease-out)">'
     +'<div style="font-weight:700;font-size:.95rem;margin-bottom:8px">'+title+'</div>'
     +'<div style="font-size:.83rem;color:var(--muted);line-height:1.45;margin-bottom:16px">'+bodyHtml+'</div>'
     +'<div id="dlgBtns" style="display:flex;gap:8px">'
