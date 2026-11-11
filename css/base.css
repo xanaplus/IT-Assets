@@ -131,6 +131,14 @@ html[data-theme="dark"] .ts-thumb{transform:translateX(30px)}
 /* Form controls default to the system font; keep them on Geist like the rest. */
 button, input, select, textarea { font-family: inherit; }
 
+/* Native dropdown lists don't follow a translucent <select> background: Chrome
+   on Windows paints the open list white while the options inherit the light
+   dark-mode text, so they vanish. Give options an explicit popover surface. */
+select option, select optgroup {
+  background-color: var(--popover);
+  color: var(--popover-foreground);
+}
+
 /* Tabular figures wherever numbers align in columns */
 table, .kpi .value, .fin-grid .item .v, .health .item .v {
   font-feature-settings: "tnum" 1;
