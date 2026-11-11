@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <meta name="referrer" content="no-referrer" />
+  <script>try{var __t=localStorage.getItem("xana_theme");if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t)}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
+  <title>Confirm your equipment · Xana</title>
+  <link rel="icon" href="/scanner-app/icon-192.png" />
+  <link rel="stylesheet" href="/css/base.css" />
+  <style>
+    *{box-sizing:border-box;margin:0}
+    body{font-family:"Geist","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+    .wrap{width:100%;max-width:440px}
+    .logo{display:block;height:36px;margin:0 auto 18px}
+    h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;text-align:center;margin-bottom:18px}
+    .card{background:var(--card);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow-ambient);padding:20px}
+    .asset{padding:12px 0;border-bottom:1px solid var(--hairline)}
+    .asset:first-child{padding-top:0}
+    .asset b{font-size:.95rem}
+    .asset .sub{font-size:.8rem;color:var(--muted);margin-top:2px;line-height:1.45}
+    .asset .due{font-size:.8rem;color:var(--orange);margin-top:2px}
+    label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 6px}
+    input,textarea{width:100%;padding:11px 12px;border-radius:var(--radius-lg);border:1px solid var(--input);background:var(--card);color:var(--text);font:inherit;font-size:1rem}
+    html[data-theme="dark"] input,html[data-theme="dark"] textarea{background:color-mix(in oklch, var(--input) 30%, transparent)}
+    textarea{min-height:80px;resize:vertical}
+    input:focus,textarea:focus{outline:none;border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent)}
+    .btns{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+    button{border:0;border-radius:var(--radius-lg);padding:13px 16px;font:inherit;font-size:.95rem;font-weight:600;cursor:pointer}
+    .primary{background:var(--accent);color:var(--accent-ink)}
+    .ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+    .danger{background:color-mix(in oklch, var(--destructive) 14%, transparent);color:var(--destructive)}
+    button:disabled{opacity:.6;cursor:default}
+    .msg{margin-top:12px;padding:10px 12px;border-radius:10px;font-size:.88rem;line-height:1.5}
+    .msg.err{background:var(--msg-err-bg);color:var(--msg-err-ink)}
+    .done{text-align:center;padding:8px 0}
+    .done .tick{font-size:2.4rem;color:var(--green);line-height:1}
+    .done p{color:var(--muted);font-size:.9rem;margin-top:8px;line-height:1.5}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <img class="logo" src="/scanner-app/xana-logo.png" alt="Xana" />
+    <h1 id="title">Confirm your equipment</h1>
+    <div class="card" id="card"><p style="color:var(--muted);text-align:center">Loading…</p></div>
+  </div>
+<script src="/js/ui.js?v=18"></script>
+<script>
+"use strict";
+XanaUI.initTheme();
+const esc = XanaUI.esc;
+const card = document.getElementById("card");
+// The token is the credential: drop it from the address bar once read, so it
+// doesn't sit in history or get shared in a screenshot. Kept for this tab
+// only, so a refresh still works.
+const token = (() => {
+  const fromUrl = new URLSearchParams(location.search).get("t");
+  try {
+    if (fromUrl) sessionStorage.setItem("xana_accept_t", fromUrl);
+    return fromUrl || sessionStorage.getItem("xana_accept_t") || "";
+  } catch (e) { return fromUrl || ""; }
+})();
+if (location.search) history.replaceState(null, "", "/accept");
+
+const day = (d) => new Date(String(d).length === 10 ? d + "T00:00:00" : d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+
+function done(icon, text, sub) {
+  card.innerHTML = '<div class="done"><div class="tick">' + icon + '</div><p style="color:var(--text);font-weight:600;font-size:1rem">' + esc(text) + '</p>' + (sub ? '<p>' + esc(sub) + '</p>' : '') + '</div>';
+}
+
+function render(v) {
+  if (v.status === "accepted") return done("✓", "Confirmed", "Thanks, " + (v.personName || "").split(" ")[0] + ". IT has your confirmation" + (v.acceptedAt ? " from " + day(v.acceptedAt) : "") + ".");
+  if (!v.assets.length) return done("✓", "Nothing to confirm", "These items have already been returned to IT.");
+  if (v.expired) return done("⏱", "This link has expired", "Ask IT to send you a new one.");
+  const disputed = v.status === "disputed";
+  card.innerHTML =
+    '<p style="font-size:.95rem;margin-bottom:14px">Hi ' + esc((v.personName || "").split(" ")[0]) + ', IT has given you:</p>' +
+    v.assets.map((a) =>
+      '<div class="asset"><b>' + esc(a.tag) + '</b> · ' + esc([a.type, a.model].filter(Boolean).join(" ")) +
+      '<div class="sub">Serial ' + esc(a.serial || "—") + (a.accessories.length ? '<br>With ' + esc(a.accessories.join(", ")) : '') + (a.condition ? '<br>Condition: ' + esc(a.condition) : '') + '</div>' +
+      (a.dueBack ? '<div class="due">Return by ' + esc(day(a.dueBack)) + '</div>' : '') + '</div>'
+    ).join("") +
+    (disputed ? '<div class="msg err" style="margin-top:14px">You reported a problem. IT will be in touch. If it\'s sorted, you can confirm below.</div>' : '') +
+    '<label for="name">Your full name</label><input id="name" autocomplete="name" value="' + esc(v.personName || "") + '" />' +
+    '<div id="problem" class="hidden"><label for="note">What\'s wrong?</label><textarea id="note" placeholder="e.g. I didn\'t get the charger, or this isn\'t my laptop"></textarea></div>' +
+    '<div id="msg"></div>' +
+    '<div class="btns" id="btns"><button class="primary" id="yes">I received these</button><button class="ghost" id="no">Something\'s wrong</button></div>';
+
+  document.getElementById("yes").onclick = () => answer(true);
+  document.getElementById("no").onclick = () => {
+    const box = document.getElementById("problem");
+    if (box.classList.contains("hidden")) {
+      box.classList.remove("hidden");
+      document.getElementById("note").focus();
+      document.getElementById("no").textContent = "Send to IT";
+      document.getElementById("no").className = "danger";
+      return;
+    }
+    answer(false);
+  };
+}
+
+async function answer(accept) {
+  const msg = document.getElementById("msg");
+  const name = document.getElementById("name").value.trim();
+  const note = (document.getElementById("note") || {}).value || "";
+  msg.innerHTML = "";
+  if (name.length < 2) { msg.innerHTML = '<div class="msg err">Type your name.</div>'; return; }
+  if (!accept && note.trim().length < 3) { msg.innerHTML = '<div class="msg err">Tell IT what\'s wrong.</div>'; return; }
+  document.querySelectorAll("#btns button").forEach((b) => (b.disabled = true));
+  try {
+    const r = await fetch("/api/accept", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ t: token, accept, name, note }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || "Something went wrong. Try again.");
+    if (accept) render(d);
+    else done("✓", "Sent to IT", "Thanks. IT will look into it and get back to you.");
+  } catch (e) {
+    msg.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>';
+    document.querySelectorAll("#btns button").forEach((b) => (b.disabled = false));
+  }
+}
+
+(async () => {
+  if (!token) return done("✕", "This link is not valid", "Open the link from your email again.");
+  try {
+    const r = await fetch("/api/accept?t=" + encodeURIComponent(token));
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) return done("✕", d.error || "This link is not valid", "Ask IT to send you a new one.");
+    render(d);
+  } catch (e) {
+    done("✕", "Couldn't load", "Check your connection and refresh the page.");
+  }
+})();
+</script>
+</body>
+</html>

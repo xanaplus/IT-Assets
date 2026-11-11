@@ -7,7 +7,7 @@
 <title>Assets - Detailed · Xana</title>
 <link rel="icon" href="/scanner-app/icon-192.png" />
 <script src="/scanner-app/lib/supabase.min.js"></script>
-<script src="/js/supabase-client.js?v=18"></script>
+<script src="/js/supabase-client.js?v=19"></script>
 <script src="/js/ui.js?v=18"></script>
 <script src="/scanner-app/logic.js?v=17"></script>
 <script src="/scanner-app/lib/html5-qrcode.min.js"></script>
@@ -16,7 +16,7 @@
 <style>
   :root {
     /* Colour, radius and elevation tokens come from /css/base.css. */
-    --accent2:#3b82f6; --book:#0d9488;
+    --accent2:#3b82f6; --book:#0f766e;   /* teal-700: white text 5.5:1 */
     --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
     --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     --ease-sharp: cubic-bezier(0.4, 0, 0.2, 1);
@@ -56,11 +56,48 @@
   .btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
   .btn.secondary:hover{background:var(--card2)}
   .btn.book{background:var(--book);color:#fff}
+  [data-theme="dark"] .btn.book{color:#042f2e}   /* light teal in dark mode needs dark ink */
   .card{background:var(--card);border:1px solid var(--hairline);border-radius:var(--radius);padding:20px;margin-top:14px;box-shadow:var(--shadow-ambient), var(--inner-highlight)}
   /* detail card product image — small thumb beside the title */
-  .detail-top{display:flex;align-items:center;gap:12px}
-  .detail-top h2{margin:0;flex:1;min-width:0}
-  .detail-hero{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--hairline);background:var(--card2);flex:0 0 auto}
+  /* --- asset card: header, holder strip, grouped fields, action bar --- */
+  #assetCard{padding:0;overflow:hidden}
+  .detail-top{display:flex;align-items:center;gap:16px;padding:20px 22px 18px}
+  .detail-top .ident{flex:1;min-width:0}
+  .detail-top h2{margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:1.6rem;font-weight:700;letter-spacing:-.025em;line-height:1.15}
+  .detail-top .pill{font-size:.7rem;padding:3px 9px;letter-spacing:0}
+  .detail-top .subline{margin-top:5px;font-size:.84rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+  .detail-top .subline b{color:var(--text);font-weight:500;font-variant-numeric:tabular-nums}
+  .card-x{flex:0 0 auto;align-self:flex-start;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid var(--hairline);background:transparent;color:var(--muted);cursor:pointer;box-shadow:none}
+  .card-x:hover{color:var(--text);background:var(--card2);box-shadow:none}
+  .holder{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 22px;padding:12px 14px;border-radius:var(--radius-lg);background:var(--card2);border:1px solid var(--hairline)}
+  .holder .av{flex:0 0 auto;width:38px;height:38px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;letter-spacing:.02em;background:color-mix(in oklch,var(--accent) 16%,var(--card));color:var(--accent)}
+  .holder .av.empty{background:var(--card);color:var(--muted);border:1px dashed var(--border)}
+  .holder .who{flex:1;min-width:200px;line-height:1.35}
+  .holder .who b{font-size:.95rem;font-weight:600;letter-spacing:-.01em}
+  .holder .who .meta{font-size:.78rem;color:color-mix(in oklch,var(--muted) 75%,var(--text));display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:2px}
+  .holder .meta .late{color:var(--red);font-weight:600}
+  .holder .acts{display:flex;gap:8px;flex-wrap:wrap}
+  .holder .acts .btn{padding:8px 14px;font-size:.82rem;border-radius:var(--radius-lg)}
+  .field-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 28px;padding:18px 22px 4px}
+  @media(max-width:1100px){.field-groups{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:700px){.field-groups{grid-template-columns:1fr}.detail-top{padding:16px 16px 14px}.holder{margin:0 16px}.field-groups{padding:14px 16px 4px}}
+  .fgroup h3{font-size:.8rem;font-weight:600;color:var(--text);margin:6px 0 4px;letter-spacing:-.005em}
+  .fgroup .row{min-height:38px;padding:8px 6px;font-size:.84rem}
+  .fgroup .row:last-child{border-bottom:0}
+  .fgroup .row span:last-child{font-variant-numeric:tabular-nums}
+  #assetCard .hint{padding:0 22px;margin:4px 0 0}
+  #assetCard .detail-actions{margin:14px 0 0;padding:12px 22px;border-top:1px solid var(--hairline);background:color-mix(in oklch,var(--card2) 45%,var(--card))}
+  #assetCard #histPanel:not(:empty),#assetCard #evPanel:not(:empty){padding:4px 22px 18px}
+  #assetCard #editBar:not(:empty){padding:0 22px}
+  .detail-actions .btn svg{width:14px;height:14px;vertical-align:-2px;margin-right:5px}
+  .card-x{padding:0}
+  .card-x svg{width:16px;height:16px;flex:0 0 auto}
+  .thumb-empty svg{width:24px;height:24px}
+  .icon-btn svg{width:13px;height:13px;display:block}
+  .detail-actions .sep{width:1px;align-self:stretch;background:var(--hairline);margin:2px 4px}
+  .detail-actions .btn.ghost-danger{background:transparent;border:1px solid transparent;color:var(--destructive)}
+  .detail-actions .btn.ghost-danger:hover{background:color-mix(in oklch,var(--destructive) 10%,transparent);box-shadow:none}
+  .detail-hero{width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid var(--hairline);background:var(--card2);flex:0 0 auto}
   /* icon bar at the bottom of the thumb: ✎ writers, 🗑 admins only */
   .thumb-wrap{position:relative;flex:0 0 auto;line-height:0;cursor:zoom-in}
   .thumb-actions{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:6px;padding:4px 2px;background:linear-gradient(transparent,rgba(0,0,0,.5));border-radius:0 0 10px 10px;opacity:0;transition:opacity .15s ease;line-height:1}
@@ -68,7 +105,7 @@
   @media(hover:none){.thumb-actions{opacity:1}}
   .icon-btn{border:1px solid rgba(255,255,255,.35);background:rgba(20,24,30,.65);color:#fff;border-radius:7px;padding:3px 7px;font-size:.75rem;cursor:pointer;line-height:1}
   .icon-btn:hover{background:rgba(20,24,30,.9)}
-  .thumb-empty{width:84px;height:84px;border-radius:10px;border:1.5px dashed var(--border);background:transparent;color:var(--muted);font-size:1.6rem;font-weight:400;cursor:pointer;flex:0 0 auto}
+  .thumb-empty{width:72px;height:72px;border-radius:12px;border:1.5px dashed var(--border);background:transparent;color:var(--muted);font-size:1.6rem;font-weight:400;cursor:pointer;flex:0 0 auto}
   .thumb-empty:hover{border-color:var(--accent);color:var(--accent)}
   .msg{padding:10px;border-radius:var(--radius-lg);text-align:center;font-size:.85rem}
   .err{background:var(--msg-err-bg);color:var(--msg-err-ink);border:1px solid color-mix(in oklch, var(--red) 25%, transparent)}
@@ -76,10 +113,10 @@
   .info{background:var(--msg-info-bg);color:var(--muted);border:1px solid var(--border)}
   table{width:100%;border-collapse:collapse;font-size:.78rem}
   th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
-  th{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer}
+  th{color:var(--muted);font-size:.76rem;font-weight:500;cursor:pointer}
   th:hover{color:var(--text)}
-  .tbl-scroll{overflow:auto;max-height:520px;border:1px solid var(--hairline);border-radius:var(--radius);scroll-behavior:smooth;background:var(--card);box-shadow:var(--shadow-ambient), var(--inner-highlight);overscroll-behavior:auto}   /* chain to the page at top/bottom */
-  thead th{position:relative;white-space:nowrap}
+  .tbl-scroll{overflow:auto;max-height:max(380px,calc(100vh - 290px));border:1px solid var(--hairline);border-radius:var(--radius);scroll-behavior:smooth;background:var(--card);box-shadow:var(--shadow-ambient), var(--inner-highlight);overscroll-behavior:auto}   /* chain to the page at top/bottom */
+  thead th{position:sticky;top:0;z-index:2;white-space:nowrap;background:var(--card);box-shadow:inset 0 -1px 0 var(--border)}
   th .fwrap{display:inline-flex;align-items:center;margin-left:4px}
   button.funnel{background:none;border:none;color:var(--muted);cursor:pointer;padding:2px;line-height:1;opacity:.7;display:inline-flex;align-items:center;gap:3px}
   button.funnel:hover{color:var(--text);opacity:1}
@@ -92,7 +129,37 @@
   .fpop label:hover{color:var(--accent)}
   .fpop .fbtns{display:flex;gap:6px;margin-top:8px}
   .pill{padding:2px 8px;border-radius:999px;font-size:.65rem;font-weight:600;white-space:nowrap}
-  #authState{font-size:.75rem;color:var(--muted);margin-bottom:8px}
+  .page-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:4px 0 14px}
+  .page-head h1{font-size:1.6rem;font-weight:700;letter-spacing:-.025em;margin:0}
+  .page-head h1 .count{font-size:1rem;font-weight:500;color:var(--muted);margin-left:6px;font-variant-numeric:tabular-nums;letter-spacing:0}
+  #authState{font-size:.78rem;color:var(--muted)}
+  .toolbar .btn svg{vertical-align:-3px;margin-right:6px}
+  .toolbar .tb-main{font-weight:600}
+  .tb-sep{width:1px;align-self:stretch;margin:4px 2px;background:var(--hairline)}
+  .btn.ghost{background:transparent;border:1px solid transparent;color:var(--muted)}
+  .btn.ghost:hover{background:var(--card2);color:var(--text);box-shadow:none}
+  @media(max-width:700px){.tb-sep{display:none}.btn.ghost{padding-inline:10px}.btn.ghost .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.btn.ghost svg{margin:0}.toolbar #search{flex-basis:100%}}
+  /* register table */
+  .reg-filters{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 10px}
+  .fchip{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 10px;border-radius:999px;font-size:.76rem;background:color-mix(in oklch,var(--accent) 10%,var(--card));border:1px solid color-mix(in oklch,var(--accent) 30%,transparent);color:var(--text);cursor:pointer;box-shadow:none}
+  .fchip b{font-weight:600}
+  .fchip .x{display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center;border-radius:999px;color:var(--muted)}
+  .fchip:hover .x{background:var(--card2);color:var(--text)}
+  .fclear{background:none;border:0;color:var(--accent);font-size:.76rem;cursor:pointer;padding:4px 6px;box-shadow:none;text-decoration:underline;text-underline-offset:3px}
+  .reg-foot{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+  .reg-foot .range{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:90px;text-align:center}
+  .reg-foot .hint2{margin-left:auto;font-size:.76rem;color:var(--muted)}
+  .reg-foot .btn{padding:7px 12px;font-size:.8rem}
+  .reg-foot .btn svg{display:block}
+  #main tbody tr{transition:background-color .12s ease}
+  #main tbody tr:hover{background:color-mix(in oklch,var(--accent) 5%,transparent)}
+  #main tbody tr.current{background:color-mix(in oklch,var(--accent) 10%,transparent)}
+  #main tbody tr.current td:first-child{box-shadow:inset 2px 0 0 var(--accent)}
+  #main tbody tr:last-child td{border-bottom:0}
+  #main td{font-size:.84rem}
+  #main td.num{font-variant-numeric:tabular-nums;color:var(--muted)}
+  #main td.tnum{font-variant-numeric:tabular-nums}
+  .sortlabel svg{vertical-align:-2px;margin-left:3px;color:var(--accent)}
   .editrow{cursor:pointer;border-radius:6px;transition:background .12s ease}
   .editrow:hover{background:color-mix(in oklch, var(--accent) 6%, transparent)}
   .editrow:hover>span:first-child{color:var(--text)}
@@ -163,7 +230,7 @@
   .toolbar{background:color-mix(in srgb,var(--card) 55%,transparent);border:1px solid var(--hairline);border-radius:var(--radius);padding:8px;box-shadow:var(--shadow-ambient),var(--inner-highlight)}
   .toolbar input#search{background:var(--card);border-radius:var(--radius-lg)}
   .seg{display:inline-flex;background:var(--card2);border:1px solid var(--hairline);border-radius:999px;padding:3px;gap:2px}
-  .seg button{border:0;background:transparent;border-radius:999px;padding:8px 16px;font:inherit;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;transition:color .3s var(--ease-out),background-color .3s var(--ease-out),box-shadow .3s var(--ease-out)}
+  .seg button{border:0;background:transparent;border-radius:999px;padding:8px 16px;font:inherit;font-size:.82rem;font-weight:600;color:color-mix(in oklch,var(--muted) 80%,var(--text));cursor:pointer;transition:color .3s var(--ease-out),background-color .3s var(--ease-out),box-shadow .3s var(--ease-out)}
   .seg button.active{background:var(--card);color:var(--text);box-shadow:var(--shadow-ambient)}
   .btn.secondary.active{border-color:var(--accent);color:var(--accent)}
   .skel{border-radius:10px;background:linear-gradient(100deg,var(--card2) 40%,color-mix(in srgb,var(--card2) 35%,var(--card)) 50%,var(--card2) 60%);background-size:200% 100%;animation:shimmer 1.4s var(--ease-out) infinite}
@@ -186,7 +253,10 @@
   .prow:hover .popen{color:var(--accent)}
   .prow .pserial{color:var(--muted);font-size:.76rem}
   .prow .popen{margin-left:auto;font-size:.76rem;color:var(--muted)}
-  .chev{transition:transform .3s var(--ease-out);color:var(--muted);font-size:.7rem}
+  .chev{transition:transform .3s var(--ease-out);color:var(--muted);display:inline-flex}
+  .pwho{display:flex;align-items:center;gap:10px;min-width:0}
+  .pav{flex:0 0 auto;width:32px;height:32px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;background:color-mix(in oklch,var(--accent) 14%,var(--card));color:var(--accent)}
+  .prow .popen{display:inline-flex}
   .pcard.open .chev{transform:rotate(90deg)}
 </style>
 
@@ -216,9 +286,10 @@
     <div class="spin"></div>
     <div class="boot-note">Loading the register…</div>
   </div>
-  <h1>Assets - Detailed</h1>
-  <p class="sub">Full register - click an asset for details.</p>
-  <div id="authState">Signing in…</div>
+  <div class="page-head">
+    <h1>Assets <span class="count" id="assetCount"></span></h1>
+    <div id="authState">Signing in…</div>
+  </div>
   <div id="gate" class="hidden">
     <div class="toolbar">
       <div class="seg" id="viewSeg" role="tablist" aria-label="View">
@@ -226,10 +297,11 @@
         <button type="button" id="segPeople">People</button>
       </div>
       <input type="text" id="search" placeholder="Search tag, serial, model, employee…" autocomplete="off" />
-      <button class="btn book" id="btnScan">Scan</button>
-      <button class="btn" id="btnAdd">+ Add Asset</button>
-      <button class="btn secondary" id="btnCopyView" title="Copy a link to this filtered view">Copy link</button>
-      <button class="btn secondary" id="btnExportView" title="Download the rows currently matching, as CSV">Export view</button>
+      <button class="btn tb-main" id="btnScan"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M8 12h8"/></svg>Scan</button>
+      <button class="btn secondary" id="btnAdd"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add asset</button>
+      <span class="tb-sep" aria-hidden="true"></span>
+      <button class="btn ghost" id="btnCopyView" title="Copy a link to this filtered view"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span class="lbl">Copy link</span></button>
+      <button class="btn ghost" id="btnExportView" title="Download the rows currently matching, as CSV"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="lbl">Export</span></button>
     </div>
     <div id="main"><div class="card"><div class="skel" style="height:16px;width:32%;margin-bottom:16px"></div><div class="skel" style="height:30px;margin-bottom:8px"></div><div class="skel" style="height:30px;margin-bottom:8px"></div><div class="skel" style="height:30px;margin-bottom:8px"></div><div class="skel" style="height:30px;margin-bottom:8px"></div><div class="skel" style="height:30px"></div></div></div>
     <div id="people" class="hidden"></div>
@@ -405,12 +477,19 @@ function distinctValues(key){
   }
   return [...s].sort((a,b)=>COLL.compare(a,b));
 }
+// Active column filters as removable chips above the table.
 function metaLine(){
   const active=Object.entries(colFilters).filter(([,s])=>s.size);
   if(!active.length)return"";
-  return ' · <b>filtered</b> ('+active.map(([k,s])=>k+"("+s.size+")").join(", ")+') — <a href="#" id="clearColFilters" style="color:var(--accent)">clear</a>';
+  const name={type:"Type",location:"Location",status:"Status",department:"Department"};
+  return '<div class="reg-filters">'+active.map(([k,s])=>{
+    const vals=[...s];
+    return '<button type="button" class="fchip" data-unfilter="'+esc(k)+'" title="Remove this filter"><span><b>'+esc(name[k]||k)+':</b> '+esc(vals.slice(0,2).join(", "))+(vals.length>2?" +"+(vals.length-2):"")+'</span><span class="x" aria-hidden="true"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span></button>';
+  }).join("")+(active.length>1?'<button type="button" class="fclear" id="clearColFilters">Clear all</button>':'')+'</div>';
 }
 document.addEventListener("click",e=>{
+  const un=e.target.closest("[data-unfilter]");
+  if(un){colFilters[un.dataset.unfilter]=new Set();applyFilters();return;}
   if(e.target.id==="clearColFilters"){
     e.preventDefault();
     for(const k of Object.keys(colFilters))colFilters[k]=new Set();
@@ -449,7 +528,8 @@ const haystackOf=it=>(it.tag+" "+it.serial+" "+it.model+" "+it.employee+" "+it.t
 let _loadSeq=0;
 async function load(){
   const seq=++_loadSeq;
-  const items=await XanaSupabase.listAssetsDetailed();
+  // Open check-outs load beside the register (assets/checkout.js).
+  const [items]=await Promise.all([XanaSupabase.listAssetsDetailed(),window.XanaCheckout?XanaCheckout.refresh():null]);
   // A newer load already answered — this response is older than what is on
   // screen, so it must not overwrite allItems.
   if(seq!==_loadSeq)return;
@@ -559,6 +639,8 @@ function viewLabel(){
 }
 function renderTable(){
   const main=document.getElementById("main");
+  const cnt=document.getElementById("assetCount");
+  if(cnt)cnt.textContent=filtered.length===allItems.length?String(allItems.length):filtered.length+" of "+allItems.length;
   if(!filtered.length){
     main.innerHTML='<div class="card empty"><h3>No matching assets</h3><p>'+(allItems.length?"Try a different search, or clear the column filters.":"The register is empty — add your first asset, or scan one on the floor.")+'</p><button class="btn" id="emptyClear">Clear search</button></div>';
     document.getElementById("emptyClear")?.addEventListener("click",()=>{
@@ -575,19 +657,25 @@ function renderTable(){
   const head=COLS.map(([label,key])=>{
     const fkey=FILTERABLE[label];
     const funnel=fkey?'<span class="fwrap"><button type="button" class="funnel'+(colFilters[fkey].size?" active":"")+'" data-funnel="'+fkey+'" title="Filter '+label.toLowerCase()+'" aria-label="Filter by '+label.toLowerCase()+'">'+FUNNEL_ICON+(colFilters[fkey].size?'<span class="fcount">'+colFilters[fkey].size+'</span>':'')+'</button></span>':"";
-    const arrow=(sortKey===key)?(sortDir===1?" ▲":" ▼"):"";
+    const arrow=(sortKey===key)?'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(sortDir===1?'<path d="M6 15l6-6 6 6"/>':'<path d="M6 9l6 6 6-6"/>')+'</svg>':"";
     // aria-sort tells a screen reader which column is ordered and how; the
     // th itself is focusable so the sort is reachable without a mouse.
     const aria=(sortKey===key)?(sortDir===1?"ascending":"descending"):"none";
     return '<th data-sort="'+key+'" tabindex="0" aria-sort="'+aria+'"><span class="sortlabel" data-sort="'+key+'">'+label+arrow+"</span>"+funnel+"</th>";
   }).join("");
+  const openId=new URLSearchParams(location.search).get("id")||"";
   const rows=slice.map((it,idx)=>`
-    <tr data-idx="${start+idx}" tabindex="0" style="cursor:pointer" title="Open ${esc(it.tag||"asset")}">
-      <td><b>${esc(it.tag)}</b></td><td>${esc(it.type)}</td><td>${esc(it.model)}</td><td>${esc(it.serial)}</td><td>${esc(it.employee)}</td><td>${esc(it.department||"")}</td><td>${esc(it.location)}</td>
+    <tr data-idx="${start+idx}" tabindex="0" style="cursor:pointer" title="Open ${esc(it.tag||"asset")}"${openId&&String(it.tag||it.id)===openId?' class="current"':''}>
+      <td><b>${esc(it.tag)}</b></td><td>${esc(it.type)}</td><td>${esc(it.model)}</td><td class="tnum">${esc(it.serial)}</td><td>${esc(it.employee)}</td><td>${esc(it.department||"")}</td><td>${esc(it.location)}</td>
       <td><span class="pill" style="--c:${statusColor(it.status)}">${esc(it.status)}</span></td>
-      <td>${esc(it.purchaseDate)}</td><td>${esc(it.condition||"")}</td>
+      <td class="num">${esc(it.purchaseDate)}</td><td>${esc(it.condition||"")}</td>
     </tr>`).join("");
-  main.innerHTML='<div class="card"><div style="margin-bottom:6px;font-size:.8rem;color:var(--muted)">Showing '+(start+1)+'–'+end+' of '+filtered.length+' (tap row for details)'+metaLine()+'</div><div class="tbl-scroll"><table><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div><div style="margin-top:8px;display:flex;gap:8px;align-items:center"><button class="btn secondary" id="prev" '+(currentPage===0?'disabled':'')+'>Prev</button><button class="btn secondary" id="next" '+(end>=filtered.length?'disabled':'')+'>Next</button><span style="margin-left:auto;font-size:.8rem;color:var(--muted)">Label sorts · funnel filters</span></div></div>';
+  const chev=d=>'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>';
+  main.innerHTML='<div class="card">'+metaLine()+'<div class="tbl-scroll"><table><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div>'
+    +'<div class="reg-foot"><button class="btn secondary" id="prev" aria-label="Previous page" '+(currentPage===0?'disabled':'')+'>'+chev("M15 6l-6 6 6 6")+'</button>'
+    +'<span class="range" aria-live="polite">'+(start+1)+'–'+end+' of '+filtered.length+'</span>'
+    +'<button class="btn secondary" id="next" aria-label="Next page" '+(end>=filtered.length?'disabled':'')+'>'+chev("M9 6l6 6-6 6")+'</button>'
+    +'<span class="hint2">Click a heading to sort · funnel to filter</span></div></div>';
   // Enter/Space on a focused header or row does what a click did.
   const keyActivate=(el,fn)=>el.addEventListener("keydown",e=>{
     if(e.key!=="Enter"&&e.key!==" ")return;
@@ -616,12 +704,34 @@ function renderTable(){
   document.getElementById("prev")?.addEventListener("click",()=>{if(currentPage>0){currentPage--;renderTable();}});
   document.getElementById("next")?.addEventListener("click",()=>{if(end<filtered.length){currentPage++;renderTable();}});
 }
+// One stroke icon set for the asset card (1.75 stroke, currentColor).
+const ICON=(()=>{
+  const svg=d=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>';
+  return {
+    x:svg('<path d="M6 6l12 12M18 6L6 18"/>'),
+    check:svg('<path d="M5 12.5l4.2 4.2L19 7"/>'),
+    scan:svg('<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M8 12h8"/>'),
+    flag:svg('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'),
+    copy:svg('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>'),
+    trash:svg('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'),
+    pencil:svg('<path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/>'),
+    camera:svg('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
+  };
+})();
 function showDetail(it){
   // The card below is rebuilt wholesale, which used to leave an open inline
   // editor detached from the DOM while _openEditor still pointed at it — a
   // half-typed value was then either lost or committed silently 80ms later by
   // the blur path. Commit it (or drop it if it is unchanged) first.
   closeEditor(true);
+  // Put the open card in the address bar (?id=<tag>), so a refresh or a
+  // shared link reopens it; load() reads it back.
+  try{
+    const p=new URLSearchParams(location.search);
+    const want=String(it.tag||it.id);
+    if(p.get("id")!==want){p.set("id",want);history.replaceState(null,"",location.pathname+"?"+p.toString());}
+  }catch(e){}
+  markCurrentRow(it);
   const c=statusColor(it.status);
   const detail=document.getElementById("detail");
   // Read-only roles (asset_viewer only — e.g. finance) get the identical card
@@ -632,47 +742,68 @@ function showDetail(it){
   const admin=rolesIncludeAdmin();
   const heroImg=it.imageUrl?'<img class="detail-hero" src="'+esc(it.imageUrl)+'" alt="Asset photo" title="View full size" loading="lazy" />':'';
   const heroBtns='<div class="thumb-actions">'
-    +(w?'<button class="icon-btn" id="imgEditBtn" type="button" title="'+(it.imageUrl?"Change photo":"Add photo")+'" aria-label="'+(it.imageUrl?"Change the asset photo":"Add a photo to this asset")+'">✎</button>':'')
-    +(admin&&it.imageUrl?'<button class="icon-btn" id="imgDelBtn" type="button" title="Remove photo" aria-label="Remove the asset photo">🗑</button>':'')
+    +(w?'<button class="icon-btn" id="imgEditBtn" type="button" title="'+(it.imageUrl?"Change photo":"Add photo")+'" aria-label="'+(it.imageUrl?"Change the asset photo":"Add a photo to this asset")+'">'+ICON.pencil+'</button>':'')
+    +(admin&&it.imageUrl?'<button class="icon-btn" id="imgDelBtn" type="button" title="Remove photo" aria-label="Remove the asset photo">'+ICON.trash+'</button>':'')
     +'</div>';
   const thumb=it.imageUrl?'<div class="thumb-wrap">'+heroImg+((w||admin)?heroBtns:'')+'</div>'
-    :(w?'<button class="thumb-empty" id="imgEditBtn" type="button" title="Add photo" aria-label="Add a photo to this asset">+</button>':'');
-  const titleHtml='<h2>'+esc(it.tag||"Asset")+' <span class="pill" style="--c:'+c+'">'+esc(it.status||"")+'</span></h2>';
-  const topHtml='<div class="detail-top">'+titleHtml+thumb+'</div>';
+    :(w?'<button class="thumb-empty" id="imgEditBtn" type="button" title="Add photo" aria-label="Add a photo to this asset">'+ICON.camera+'</button>':'');
+  // Header: photo, tag + status, one identity line, close.
+  const sub=[it.type,it.model].filter(Boolean).map(esc).join(" · ");
+  const titleHtml='<div class="ident"><h2>'+esc(it.tag||"Asset")+'<span class="pill" style="--c:'+c+'">'+esc(it.status||"—")+'</span></h2>'
+    +'<div class="subline">'+(sub?'<span>'+sub+'</span>':'')+(it.serial?'<span>Serial <b>'+esc(it.serial)+'</b></span>':'')+'</div></div>';
+  const topHtml='<div class="detail-top">'+thumb+titleHtml+'<button type="button" class="card-x" id="detailClose" title="Close" aria-label="Close this asset">'+ICON.x+'</button></div>';
   const erow=w?"row editrow":"row";
+  const f=(label,key,val)=>'<div class="'+erow+'"><span>'+label+'</span><span data-edit="'+key+'">'+val+'</span></div>';
+  const ro=(label,val,id)=>'<div class="row"><span>'+label+'</span><span'+(id?' id="'+id+'"':'')+'>'+val+'</span></div>';
   detail.innerHTML='<div class="card" id="assetCard">'+topHtml+
+    (window.XanaCheckout?XanaCheckout.holderHtml(it):'')+
+    '<div class="field-groups">'+
+      '<section class="fgroup" aria-label="Asset"><h3>Asset</h3>'+
+        f("Serial No.","SerialNumber",esc(it.serial||"")||"—")+
+        f("Asset Type","Asset",esc(it.type||"")||"—")+
+        f("Model","Model",esc(it.model||"")||"—")+
+        f("Condition","Condition",esc(it.condition||"")||"—")+
+        ro("Last Verified",fmtWhen(it.lastVerified)||"—","lastVerifiedVal")+
+      '</section>'+
+      '<section class="fgroup" aria-label="Assignment"><h3>Assignment</h3>'+
+        f("Employee","EmployeeName",esc(it.employee||"")||"—")+
+        f("Department","Department",esc(it.department||"")||"—")+
+        f("Location","Location",esc(it.location||"")||"—")+
+        f("Status","Status",esc(it.status||"")||"—")+
+      '</section>'+
+      '<section class="fgroup" aria-label="Purchase and value"><h3>Purchase &amp; value</h3>'+
+        f("Purchase Date","PurchaseDate",esc(it.purchaseDate||"")||"—")+
+        f("Purchase Price","PurchasePrice",it.purchasePrice?money(it.purchasePrice):(it.estimatePending?"estimate pending":"—"))+
+        ro("Book Value",'<b style="color:var(--book)">'+money(it.bookValue)+'</b>')+
+        ro("Dep Status",esc(it.depStatus||"")||"—")+
+        ro("Useful Life",it.usefulLife?esc(it.usefulLife)+" yrs":"—")+
+        ro("Warranty",warrantyText(it),"warrantyVal")+
+        f("Vendor","Vendor",esc(it.vendor||"")||"—")+
+        f("PO Number","PoNumber",esc(it.poNumber||"")||"—")+
+      '</section>'+
+    '</div>'+
     '<div class="hint">'+(w?"Tap any value to change it. Edits save to the register and mirror to SharePoint.":"View only. You can open and read every asset; contact IT to change any of these values.")+'</div>'+
-    '<div class="detail-grid">'+
-    '<div class="'+erow+'"><span>Serial No.</span><span data-edit="SerialNumber">'+(esc(it.serial||"")||"—")+'</span></div>'+
-    '<div class="'+erow+'"><span>Asset Type</span><span data-edit="Asset">'+esc(it.type||"")+'</span></div>'+
-    '<div class="'+erow+'"><span>Model</span><span data-edit="Model">'+esc(it.model||"")+'</span></div>'+
-    '<div class="'+erow+'"><span>Department</span><span data-edit="Department">'+(esc(it.department||"")||"—")+'</span></div>'+
-    '<div class="'+erow+'"><span>Employee</span><span data-edit="EmployeeName">'+(esc(it.employee||"")||"—")+'</span></div>'+
-    '<div class="'+erow+'"><span>Location</span><span data-edit="Location">'+(esc(it.location||"")||"—")+'</span></div>'+
-    '<div class="'+erow+'"><span>Status</span><span data-edit="Status">'+esc(it.status||"")+'</span></div>'+
-    '<div class="'+erow+'"><span>Condition</span><span data-edit="Condition">'+(esc(it.condition||"")||"—")+'</span></div>'+
-    '<div class="'+erow+'"><span>Purchase Date</span><span data-edit="PurchaseDate">'+(esc(it.purchaseDate||"")||"—")+'</span></div>'+
-    '<div class="'+erow+'"><span>Vendor</span><span data-edit="Vendor">'+(esc(it.vendor||"")||"—")+'</span></div>'+
-    '<div class="'+erow+'"><span>PO Number</span><span data-edit="PoNumber">'+(esc(it.poNumber||"")||"—")+'</span></div>'+
-    '<div class="'+erow+'"><span>Purchase Price</span><span data-edit="PurchasePrice">'+(it.purchasePrice?money(it.purchasePrice):(it.estimatePending?"estimate pending":"—"))+'</span></div>'+
-    '<div class="row"><span>Book Value</span><span style="color:var(--book)"><b>'+money(it.bookValue)+'</b></span></div>'+
-    '<div class="row"><span>Dep Status</span><span>'+esc(it.depStatus||"")+'</span></div>'+
-    '<div class="row"><span>Useful Life</span><span>'+esc(it.usefulLife||"")+' yrs</span></div>'+
-    '<div class="row"><span>Warranty</span><span id="warrantyVal">'+warrantyText(it)+'</span></div>'+
-    '<div class="row"><span>Last Verified</span><span id="lastVerifiedVal">'+(fmtWhen(it.lastVerified)||"—")+'</span></div>'+
-    '</div><div id="editBar"></div><div class="detail-actions">'+(w?'<button class="btn secondary" id="rescanBtn">Scan again</button><button class="btn secondary" id="cloneBtn">Clone</button><button class="btn secondary" id="verifyBtn">✓ Verify</button><button class="btn secondary" id="reportBtn">Report problem</button>':'')+'<span class="spacer"></span><button class="btn secondary" id="histToggle">History</button><button class="btn secondary" id="evToggle">Events</button><button class="btn danger" onclick="document.getElementById(&quot;detail&quot;).innerHTML=&quot;&quot;">Close</button>'+(rolesIncludeAdmin()?'<button class="btn danger" id="delBtn">Delete</button>':'')+'</div><div id="histPanel"></div><div id="evPanel"></div></div>';
+    '<div id="editBar"></div>'+
+    '<div class="detail-actions">'+
+      (w?'<button class="btn secondary" id="verifyBtn">'+ICON.check+'Verify</button><button class="btn secondary" id="rescanBtn">'+ICON.scan+'Scan again</button><button class="btn secondary" id="reportBtn">'+ICON.flag+'Report problem</button><button class="btn secondary" id="cloneBtn">'+ICON.copy+'Clone</button>':'')+
+      '<span class="spacer"></span>'+
+      '<button class="btn secondary" id="histToggle">History</button><button class="btn secondary" id="evToggle">Events</button>'+
+      (rolesIncludeAdmin()?'<span class="sep" aria-hidden="true"></span><button class="btn ghost-danger" id="delBtn">'+ICON.trash+'Delete</button>':'')+
+    '</div><div id="histPanel"></div><div id="evPanel"></div></div>';
   // Clone — open the add form prefilled with this asset's shared attributes
   // (Tag + Serial left blank; they are unique per item).
   document.getElementById("cloneBtn")?.addEventListener("click",()=>{
     cloneIntoForm(it);
   });
   document.getElementById("rescanBtn")?.addEventListener("click",startScan);
+  document.getElementById("detailClose")?.addEventListener("click",closeDetail);
+  window.XanaCheckout?.bind(it);
   // Verify — stamps LastVerified/LastVerifiedBy (same write the scanner-app makes)
   document.getElementById("verifyBtn")?.addEventListener("click",async function(){
     this.disabled=true;this.textContent="Verifying…";
     const r=await verifyAsset(it);
-    if(r.ok){this.textContent="✓ Verified "+fmtWhen(r.when);refreshVerifiedRow(it);}
-    else{this.disabled=false;this.textContent="✓ Verify";toast("Verify failed: "+(r.reason||""),true);}
+    if(r.ok){this.innerHTML=ICON.check+"Verified "+esc(fmtWhen(r.when));refreshVerifiedRow(it);}
+    else{this.disabled=false;this.innerHTML=ICON.check+"Verify";toast("Verify failed: "+(r.reason||""),true);}
   });
   // Delete — admin/super_admin only, confirm dialog, moves to recycle bin
   document.getElementById("delBtn")?.addEventListener("click",()=>showDeleteDialog(it));
@@ -1042,6 +1173,10 @@ async function beginEdit(cell,current){
   closeEditor(true);                                // auto-save the previous one
   await getChoices();
   const name=cell.dataset.edit;
+  // A checked-out asset changes hands through Check in / Check out, so the
+  // check-out record and the Employee field can't drift apart.
+  const held=name==="EmployeeName"&&window.XanaCheckout&&XanaCheckout.assignmentOf(current);
+  if(held){toast("Checked out to "+held.person_name+" — use Check in to change who has it",true);return;}
   const orig=cell.textContent.trim();
   // "—" is a display placeholder for "no value yet" — edit as empty, never
   // pre-fill the editor with the dash itself.
@@ -1131,9 +1266,19 @@ function cloneIntoForm(it){
   setTimeout(()=>{tagInput&&tagInput.focus();tagInput&&tagInput.select();},350);
   flash(document.getElementById("addMsg"),"ok","Cloned from "+(it.tag||it.serial)+" — suggested next free tag; adjust if needed.");
 }
+// Highlight the open asset's row in the table (none when it is closed).
+function markCurrentRow(it){
+  document.querySelectorAll("#main tbody tr.current").forEach(r=>r.classList.remove("current"));
+  if(!it)return;
+  document.querySelectorAll("#main tbody tr[data-idx]").forEach(r=>{
+    const x=filtered[parseInt(r.getAttribute("data-idx"),10)];
+    if(x&&String(x.id)===String(it.id))r.classList.add("current");
+  });
+}
 function closeDetail(){
   const d=document.getElementById("detail");
   if(d)d.innerHTML="";
+  markCurrentRow(null);
   // the card is addressable (?id=), so closing it must drop that from the URL
   try{
     const p=new URLSearchParams(location.search);
@@ -1565,11 +1710,11 @@ function renderPeople(){
   host.innerHTML=groups.map(g=>{
     const key=g.name.toLowerCase(),open=_openGroups.has(key);
     const rows=rowsByKey.get(key)||[];
-    const ret=canWrite()?'<button class="btn secondary" data-ret="'+esc(g.name)+'">Mark all returned</button>':"";
+    const ret=canWrite()?'<button class="btn secondary" data-ret="'+esc(g.name)+'">Check in all</button>':"";
     return '<div class="card pcard'+(open?" open":"")+'">'+
-      '<div class="phead" data-g="'+esc(key)+'" tabindex="0" aria-expanded="'+(open?"true":"false")+'"><div><span class="pname">'+esc(g.name)+'</span><span class="pcount">'+g.count+" asset"+(g.count===1?"":"s")+'</span></div><div style="display:flex;gap:8px;align-items:center">'+ret+'<span class="chev" aria-hidden="true">▶</span></div></div>'+
+      '<div class="phead" data-g="'+esc(key)+'" tabindex="0" aria-expanded="'+(open?"true":"false")+'"><div class="pwho"><span class="pav" aria-hidden="true">'+esc(String(g.name).trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toUpperCase())+'</span><span class="pname">'+esc(g.name)+'</span><span class="pcount">'+g.count+" asset"+(g.count===1?"":"s")+'</span></div><div style="display:flex;gap:8px;align-items:center">'+ret+'<span class="chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div></div>'+
       '<div class="passets">'+rows.map(it=>
-        '<div class="prow" data-open="'+esc(String(it.id))+'" tabindex="0"><b>'+esc(it.tag||"#"+it.id)+'</b><span class="pserial">'+esc(it.serial||"")+'</span><span class="pill" style="--c:'+statusColor(it.status)+'">'+esc(it.status||"—")+'</span><span class="popen">Open →</span></div>'
+        '<div class="prow" data-open="'+esc(String(it.id))+'" tabindex="0"><b>'+esc(it.tag||"#"+it.id)+'</b><span class="pserial">'+esc(it.serial||"")+'</span><span class="pill" style="--c:'+statusColor(it.status)+'">'+esc(it.status||"—")+'</span>'+(window.XanaCheckout?XanaCheckout.peopleBadge(it):'')+'<span class="popen" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>'
       ).join("")+"</div></div>";
   }).join("");
 }
@@ -1577,54 +1722,19 @@ function renderPeople(){
 document.getElementById("people").addEventListener("keydown",e=>{
   if(e.key!=="Enter"&&e.key!==" ")return;
   const el=e.target.closest(".phead,[data-open]");
-  if(!el||e.target.closest("button"))return;   // "Mark all returned" owns its own keys
+  if(!el||e.target.closest("button"))return;   // "Check in all" owns its own keys
   e.preventDefault();
   el.click();
 });
 document.getElementById("people").addEventListener("click",async(e)=>{
   const ret=e.target.closest("[data-ret]");
   if(ret){
+    // Leavers go through the same check-in as a single asset, so condition,
+    // missing accessories and wipe status are recorded for each one.
     const name=ret.getAttribute("data-ret");
-    const ids=(Xana.groupPeopleEnriched(allItems).find(g=>g.name===name)||{ids:[]}).ids;
-    if(!ids.length)return;
-    showConfirm(
-      "Mark all returned",
-      "Set all <b style='color:var(--text)'>"+ids.length+"</b> asset(s) of <b style='color:var(--text)'>"+esc(name)+"</b> to <b style='color:var(--text)'>Available</b> and clear the assignment?",
-      "Mark returned","var(--accent)",
-      async()=>{
-        // Captured before any write: Undo has to replay these exact values,
-        // not "Available" and a blank employee.
-        const before=ids.map(id=>{
-          const it=allItems.find(x=>String(x.id)===String(id))||{};
-          return {id,status:it.status||"",employee:it.employee||""};
-        });
-        let done=0;const fails=[],changed=[];
-        for(const rec of before){
-          try{
-            await XanaSupabase.updateAsset(rec.id,{Status:"Available",EmployeeName:""});
-            changed.push(rec);done++;
-          }catch(err){fails.push(rec.id);}
-        }
-        // ONE summary transfer for the whole leaver. A per-asset event doubled
-        // the round trips of a 30-asset offboarding for no extra information.
-        if(changed.length)XanaSupabase.logTransfer(changed[0].id,"Assigned to ("+changed.length+" asset"+(changed.length===1?"":"s")+")",name,"");
-        await load();
-        if(view==="people")renderPeople();
-        toast(fails.length?"Returned "+done+", "+fails.length+" failed":"Returned "+done+" asset"+(done===1?"":"s")+" to stock",!!fails.length,
-          changed.length?{label:"Undo",onClick:async()=>{
-            const back=[];
-            for(const rec of changed){
-              const patch={EmployeeName:rec.employee};
-              if(rec.status)patch.Status=rec.status;
-              try{ await XanaSupabase.updateAsset(rec.id,patch);back.push(rec); }catch(err){/* stays returned */}
-            }
-            if(back.length)XanaSupabase.logTransfer(back[0].id,"Assigned to ("+back.length+" asset"+(back.length===1?"":"s")+")","",name);
-            await load();
-            if(view==="people")renderPeople();
-            toast("Restored "+back.length+" asset"+(back.length===1?"":"s")+" to "+name,false);
-          }}:undefined);
-      }
-    );
+    const ids=(Xana.groupPeopleEnriched(allItems).find(g=>g.name===name)||{ids:[]}).ids.map(String);
+    const items=allItems.filter(x=>ids.includes(String(x.id)));
+    if(items.length&&window.XanaCheckout)XanaCheckout.openCheckin(items);
     return;
   }
   const row=e.target.closest("[data-open]");
@@ -2140,5 +2250,6 @@ async function boot(){
 }
 boot();
 </script>
+<script src="/assets/checkout.js?v=5"></script>
 </body>
 </html>

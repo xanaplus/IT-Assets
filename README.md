@@ -14,6 +14,7 @@ kept in step automatically.
 | `/dashboard` | Portfolio value, depreciation, warranty and activity KPIs | `dashboard_viewer`, admins |
 | `/admin` | Users and roles, dropdown lists, sync health, recycle bin, IT documents | `admin`, `super_admin` |
 | `/login` | Legacy shim — redirects to `/`, where sign-in lives | anyone |
+| `/accept` | Employee confirms (or disputes) a check-out. The emailed link is the only credential | anyone with a valid link |
 
 `/scan` permanently redirects to `/assets`; scanning lives inside the register.
 
@@ -73,6 +74,11 @@ Roles stack: most staff hold several. Two things worth knowing:
 | `css/`, `fonts/` | Shared tokens, page-entry overlay, view transitions, Geist |
 | `api/sharepoint-sync.js` | Drains the outbox into SharePoint. Service role, keyed |
 | `api/admin-users.js` | Invite, roles, activation, password reset. Verifies the caller is an admin |
+| `api/checkout.js` | Issues and emails check-out acceptance links (returns the link to copy when email isn't set up); admin M365 people sync |
+| `api/accept.js` | Public side of `/accept`: shows and records the employee's answer by token hash; emails disputes to IT |
+| `api/alerts.js` | Daily 07:00 job (Vercel Cron): M365 people sync, employee reminders (day 2, day 5), IT digest. Admin preview / send now |
+| `api/_lib/` | Shared server helpers and email templates. Not exposed as endpoints |
+| `assets/checkout.js`, `admin/people.js` | Check-out / check-in screens on the register; People and Alerts tabs in Admin |
 | `supabase/migrations/` | Schema and RLS, numbered and applied in order |
 | `scripts/` | Migration runner (with ledger), backfills, e2e tools, `check-syntax.mjs` (parses every page's inline script), `check-guards.mjs` (asserts the security posture against the database), `reconcile-mirror.mjs` (SP ↔ Supabase drift) |
 | `backfill/` | Work lists for filling gaps. CSVs stay local, never committed |
@@ -214,8 +220,24 @@ cd scanner-app && npm test
 | `SYNC_ACCESS_KEY` | shared secret the sync endpoint checks |
 
 The Entra app (`pnp`, client `7caa51af-9f32-42d8-8264-da5b97c2f8eb`, tenant
-`refrontiergroup.onmicrosoft.com`, `Sites.ReadWrite.All`) is used only by the
-sync worker and the PowerShell scripts. Browsers never touch Microsoft.
+`refrontiergroup.onmicrosoft.com`, `Sites.ReadWrite.All`) is used by the
+sync worker, the PowerShell scripts and the check-out/alert functions.
+Browsers never touch Microsoft.
+
+### Check-out emails and alerts (Vercel env)
+
+| Key | Purpose |
+|---|---|
+| `MAIL_SENDER` | Mailbox the app sends from (e.g. `it@…`). Unset = no email at all; IT copies links by hand |
+| `ALERT_TO` | Comma-separated recipients of the daily IT alert and dispute alerts |
+| `APP_URL` | Base URL in emailed links. Defaults to the production URL; local is `http://localhost:5180` |
+| `CRON_SECRET` | Vercel sends it to `/api/alerts`; any other caller is refused |
+
+Graph permissions the Entra app needs for this, each with admin consent:
+`Mail.Send` (restrict it to the one mailbox with an Exchange application
+access policy) and `User.Read.All` (people sync and leaver flags). Without
+them check-out still works; the link is shown to copy and Admin › People is
+maintained by hand.
 
 ## Operations
 

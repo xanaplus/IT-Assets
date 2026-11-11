@@ -875,8 +875,119 @@
     } catch (e) { /* transfer logging must never block the edit itself */ }
   }
 
+  // ---------- People, check-out and check-in (0042) ----------
+  // The database raises plain-language messages ("XL-1 is already checked
+  // out - check it in first"); pass them through without the Supabase prefix.
+  function plainError(error) {
+    const e = new Error((error && error.message) || "Request failed");
+    if (error && error.code) e.code = String(error.code);
+    return e;
+  }
+
+  async function listPeople() {
+    const { data, error } = await client()
+      .from("people")
+      .select("id,full_name,email,department,office,job_title,active,source,updated_at")
+      .order("full_name");
+    if (error) throw plainError(error);
+    return data || [];
+  }
+
+  async function addPerson({ fullName, email, department }) {
+    const { data, error } = await client()
+      .from("people")
+      .insert({ full_name: String(fullName || "").trim(), email: String(email || "").trim() || null, department: department || null, source: "manual" })
+      .select("id,full_name,email,department,office,job_title,active,source")
+      .single();
+    if (error) throw plainError(error.code === "23505" ? { message: "Someone already has that email address" } : error);
+    return data;
+  }
+
+  async function updatePerson(id, patch) {
+    const { error } = await client().from("people").update(patch).eq("id", id);
+    if (error) throw plainError(error.code === "23505" ? { message: "Someone already has that email address" } : error);
+    return true;
+  }
+
+  async function deletePerson(id) {
+    const { error } = await client().from("people").delete().eq("id", id);
+    if (error) throw plainError(error.code === "23503" ? { message: "This person has check-out history, so they can't be deleted. Mark them as left instead." } : error);
+    return true;
+  }
+
+  // Every open assignment, keyed by asset item_id, with its check-out's
+  // acceptance state. One small query per register load.
+  async function listOpenAssignments() {
+    const { data, error } = await client()
+      .from("asset_assignments")
+      .select("id,item_id,checkout_id,person_id,person_name,checked_out_at,checked_out_by,condition_out,accessories_out,due_back,notes_out,checkouts(accept_status,accepted_at,accepted_name,dispute_note,email,emails_sent,last_email_at,email_error)")
+      .is("checked_in_at", null);
+    if (error) throw plainError(error);
+    const map = new Map();
+    for (const r of data || []) map.set(String(r.item_id), r);
+    return map;
+  }
+
+  async function checkoutAssets({ personId, itemIds, condition, accessories, dueBack, notes, requestAcceptance }) {
+    const { data, error } = await client().rpc("checkout_assets", {
+      p_person_id: personId,
+      p_item_ids: itemIds.map(String),
+      p_condition: condition || null,
+      p_accessories: accessories || [],
+      p_due_back: dueBack || null,
+      p_notes: notes || null,
+      p_request_acceptance: requestAcceptance !== false,
+    });
+    if (error) throw plainError(error);
+    return data;   // {checkout_id, accept_status, email, assets}
+  }
+
+  async function checkinAssets({ itemIds, condition, returned, wiped, notes, status }) {
+    const { data, error } = await client().rpc("checkin_assets", {
+      p_item_ids: itemIds.map(String),
+      p_condition: condition || null,
+      p_returned: returned === undefined ? null : returned,
+      p_wiped: wiped === undefined ? null : wiped,
+      p_notes: notes || null,
+      p_status: status || "Available",
+    });
+    if (error) throw plainError(error);
+    return data;   // [{item_id, tag, from, missing[], damaged, had_assignment}]
+  }
+
+  // POST to one of our own /api functions with the signed-in user's token.
+  async function callApi(path, body) {
+    const s = await getSession().catch(() => null);
+    if (!s) throw new Error("Session expired - sign in again");
+    const r = await fetch(path, {
+      method: "POST",
+      headers: { Authorization: "Bearer " + s.access_token, "Content-Type": "application/json" },
+      body: JSON.stringify(body || {}),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { const e = new Error(d.error || "HTTP " + r.status); e.status = r.status; e.body = d; throw e; }
+    return d;
+  }
+
+  // Emails the acceptance link (when email is set up) and returns it either way.
+  const sendAcceptance = (checkoutId, opts) => callApi("/api/checkout", { action: "send", checkoutId, email: !(opts && opts.email === false) });
+  const syncPeopleFromM365 = () => callApi("/api/checkout", { action: "sync_people" });
+  const previewAlert = () => callApi("/api/alerts", { action: "preview" });
+  const sendAlertNow = () => callApi("/api/alerts", { action: "send" });
+
   window.XanaSupabase = {
     ADMIN_EMAIL,
+    listPeople,
+    addPerson,
+    updatePerson,
+    deletePerson,
+    listOpenAssignments,
+    checkoutAssets,
+    checkinAssets,
+    sendAcceptance,
+    syncPeopleFromM365,
+    previewAlert,
+    sendAlertNow,
     FIELD_TO_COL,
     COL_TO_FIELD,
     FORM_EXTRA_MAP,
