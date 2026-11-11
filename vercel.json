@@ -29,10 +29,17 @@
     { "source": "/assets/:path*", "destination": "/assets/:path*" },
     { "source": "/assets", "destination": "/assets/index.html" },
     { "source": "/dashboard/:path*", "destination": "/summary/:path*" },
-    { "source": "/dashboard", "destination": "/summary/index.html" }
+    { "source": "/dashboard", "destination": "/summary/index.html" },
+    { "source": "/accept", "destination": "/accept/index.html" }
   ],
   "functions": {
     "api/sharepoint-sync.js": { "memory": 512, "maxDuration": 30 },
-    "api/admin-users.js": { "memory": 512, "maxDuration": 15 }
-  }
+    "api/admin-users.js": { "memory": 512, "maxDuration": 15 },
+    "api/checkout.js": { "memory": 512, "maxDuration": 30 },
+    "api/accept.js": { "memory": 256, "maxDuration": 15 },
+    "api/alerts.js": { "memory": 512, "maxDuration": 60 }
+  },
+  "crons": [
+    { "path": "/api/alerts", "schedule": "0 4 * * *" }
+  ]
 }

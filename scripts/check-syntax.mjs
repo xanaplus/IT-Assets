@@ -10,7 +10,7 @@ import path from "node:path";
 import vm from "node:vm";
 import { execFileSync } from "node:child_process";
 
-const PAGES = ["index.html", "login/index.html", "assets/index.html", "admin/index.html", "summary/index.html"];
+const PAGES = ["index.html", "login/index.html", "assets/index.html", "admin/index.html", "summary/index.html", "accept/index.html"];
 const SCRIPTS = ["js/supabase-client.js", "js/ui.js", "summary/app.js", "scanner-app/logic.js", "scanner-app/photo.js"];
 
 let failures = 0;

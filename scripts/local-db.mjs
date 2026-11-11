@@ -53,6 +53,9 @@ function writeEnv(s) {
       `SUPABASE_SERVICE_ROLE_KEY=${s.SERVICE_ROLE_KEY}`,
       `SUPABASE_ANON_KEY=${s.ANON_KEY}`,
       "INVITE_REDIRECT_TO=http://localhost:5180/",
+      "# Acceptance links point here. No MAIL_SENDER: local runs never email staff.",
+      "APP_URL=http://localhost:5180",
+      "CRON_SECRET=local-cron-secret",
       "",
     ].join("\n")
   );
