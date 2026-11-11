@@ -7,7 +7,7 @@
   <title>Xana Asset System</title>
   <link rel="icon" href="/scanner-app/icon-192.png" />
   <script src="/scanner-app/lib/supabase.min.js"></script>
-  <script src="/js/supabase-client.js?v=18"></script>
+  <script src="/js/supabase-client.js?v=19"></script>
   <script src="/js/ui.js?v=18"></script>
   <link rel="stylesheet" href="/css/base.css" />
   <style>
@@ -92,30 +92,38 @@
     .msg.info{background:var(--msg-info-bg);color:var(--msg-info-ink)}
     @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 
-    /* tiles */
-    .tiles-label{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,320px));gap:14px}
+    /* workspace: greeting + one row per page, each with a live status line */
+    .hello{font-size:clamp(1.6rem,3.2vw,2.1rem);font-weight:700;letter-spacing:-.03em;line-height:1.15;margin-bottom:22px;text-wrap:balance}
+    .grid{display:flex;flex-direction:column;gap:10px}
     [hidden]{display:none!important}
     .card{
-      position:relative;display:block;background:var(--panel);border:1px solid var(--hairline);
-      border-radius:var(--radius);padding:22px 20px;text-decoration:none;color:var(--text);
-      box-shadow:var(--shadow-ambient);
-      transition:transform .35s var(--ease), border-color .35s var(--ease);
-      animation:rise .6s var(--ease) backwards;
+      position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;
+      background:var(--panel);border:1px solid var(--hairline);border-radius:var(--radius);
+      padding:18px 20px;text-decoration:none;color:var(--text);box-shadow:var(--shadow-ambient);
+      transition:border-color .2s var(--ease), box-shadow .25s var(--ease), transform .2s var(--ease);
+      animation:rise .5s var(--ease) backwards;
     }
-    .card:nth-child(1){animation-delay:.08s}.card:nth-child(2){animation-delay:.16s}
-    .card:nth-child(3){animation-delay:.24s}.card:nth-child(4){animation-delay:.32s}
-    .card:hover{transform:translateY(-2px);border-color:color-mix(in oklch, var(--accent) 45%, transparent)}
-    .card:hover .go{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-    .card h2{font-size:1.02rem;font-weight:700;letter-spacing:-.01em;margin-bottom:6px}
-    .card p{color:var(--muted);font-size:.84rem;line-height:1.5;margin-bottom:18px}
-    .go{
-      display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;
-      padding:6px 13px;font-size:.76rem;font-weight:600;color:var(--muted);
-      transition:all .25s var(--ease);
-    }
-    .go::after{content:"→";transition:transform .25s var(--ease)}
-    .card:hover .go::after{transform:translateX(3px)}
+    .card:nth-child(2){animation-delay:.05s}.card:nth-child(3){animation-delay:.1s}
+    .card:hover{border-color:color-mix(in oklch, var(--accent) 40%, transparent);box-shadow:var(--shadow-lifted)}
+    .card:active{transform:scale(.995)}
+    .card .ico{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;
+      background:color-mix(in oklch, var(--accent) 12%, var(--panel));color:var(--accent)}
+    .card .ico svg{width:22px;height:22px}
+    .card .body{min-width:0}
+    .card h2{font-size:1.02rem;font-weight:650;letter-spacing:-.01em}
+    .card p{color:var(--muted);font-size:.84rem;line-height:1.45;margin-top:2px}
+    .glance{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:22px}
+    .glance span{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;font-size:.74rem;font-weight:600;
+      background:var(--card2);color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}
+    .glance span.warn{background:color-mix(in oklch, var(--orange) 14%, transparent);color:color-mix(in oklch, var(--orange) 62%, var(--text))}
+    .glance span.bad{background:color-mix(in oklch, var(--red) 14%, transparent);color:color-mix(in oklch, var(--red) 62%, var(--text))}
+    .glance span.ok{background:color-mix(in oklch, var(--green) 14%, transparent);color:color-mix(in oklch, var(--green) 62%, var(--text))}
+    .glance .skel{width:120px;height:20px;border-radius:999px;background:var(--card2);animation:pulse 1.4s ease-in-out infinite}
+    @keyframes pulse{50%{opacity:.5}}
+    .card .chev{color:var(--muted);transition:transform .2s var(--ease), color .2s var(--ease)}
+    .card .chev svg{width:18px;height:18px;display:block}
+    .card:hover .chev{color:var(--accent);transform:translateX(3px)}
+    @media(max-width:560px){.card{gap:14px;padding:16px}.card .ico{width:38px;height:38px}.card p{display:none}}
     @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 
     footer{margin-top:auto;padding-top:56px;text-align:center;color:var(--muted);font-size:.72rem}
@@ -192,26 +200,25 @@
     </div>
   </section>
 
-  <div class="tiles-label" id="tilesLabel">Your workspace</div>
+  <h1 class="hello" id="tilesLabel"></h1>
   <div class="grid" id="tiles">
     <a class="card" href="/assets" data-need="asset_viewer" hidden>
-      <h2>Assets</h2>
-      <p>The full register. Search, filter and open any asset; scanning and edits for staff with the Scanner role.</p>
-      <span class="go">Open Assets</span>
+      <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>
+      <div class="body"><h2>Assets</h2><p>The full register. Search, filter and open any asset; scanning and edits for staff with the Scanner role.</p><div class="glance" data-glance="assets"><i class="skel"></i></div></div>
+      <span class="chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
     </a>
     <a class="card" href="/dashboard" data-need="dashboard_viewer" hidden>
-      <h2>Dashboard</h2>
-      <p>Portfolio value, depreciation schedule, warranty expiries and field activity.</p>
-      <span class="go">Open Dashboard</span>
+      <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+      <div class="body"><h2>Dashboard</h2><p>Portfolio value, depreciation schedule, warranty expiries and field activity.</p><div class="glance" data-glance="dashboard"><i class="skel"></i></div></div>
+      <span class="chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
     </a>
     <a class="card" href="/admin" data-need="admin" hidden>
-      <h2>Admin</h2>
-      <p>Users and roles, dropdown lists, sync health and the recycle bin.</p>
-      <span class="go">Open Admin</span>
+      <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 11l1.5 1.5L22 9"/></svg></span>
+      <div class="body"><h2>Admin</h2><p>Users and roles, dropdown lists, sync health and the recycle bin.</p><div class="glance" data-glance="admin"><i class="skel"></i></div></div>
+      <span class="chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
     </a>
   </div>
 
-  <footer>Xana Asset System</footer>
 </div>
 
 <script>
@@ -285,12 +292,76 @@ function esc(s){return window.XanaUI.esc(s);}
   });
   if (!visible) {
     document.getElementById("tiles").innerHTML =
-      '<div class="card" style="grid-column:1/-1"><h2>No pages assigned yet</h2>' +
-      '<p>Your account has no role assigned. Ask IT to grant you access in Admin.</p></div>';
+      '<div class="card"><span></span><div class="body"><h2>No pages assigned yet</h2>' +
+      '<p>Your account has no role assigned. Ask IT to grant you access in Admin.</p></div></div>';
   }
   if (nextUrl && nextUrl !== "/") { location.replace(nextUrl); return; }
+  greet(session.user, email);
+  fillGlance();
   done();
 })();
+
+// ---------- greeting + live status per page ----------
+async function greet(user, email) {
+  let name = "";
+  try {
+    const { data } = await XanaSupabase.client().from("profiles").select("full_name").eq("id", user.id).single();
+    name = String((data && data.full_name) || "").trim().split(/\s+/)[0];
+  } catch (e) { /* fall back to the email */ }
+  if (!name) name = email.split("@")[0].split(/[._-]/)[0];
+  name = name ? name.charAt(0).toUpperCase() + name.slice(1) : "";
+  const h = new Date().getHours();
+  const part = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  document.getElementById("tilesLabel").textContent = part + (name ? ", " + name : "");
+}
+
+// One small count per fact, so the home page never loads the whole register.
+// A failed count just leaves its chip out.
+async function fillGlance() {
+  const db = XanaSupabase.client();
+  const count = async (q) => { const { count: n, error } = await q; if (error) throw error; return n || 0; };
+  const assets = () => db.from("assets").select("id", { count: "exact", head: true }).is("deleted_at", null);
+  const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
+  const chip = (cls, text) => '<span class="' + cls + '">' + esc(text) + '</span>';
+  const plural = (n, one, many) => n + " " + (n === 1 ? one : many || one + "s");
+  const put = (key, chips) => {
+    const el = document.querySelector('[data-glance="' + key + '"]');
+    if (!el) return;
+    const html = chips.filter(Boolean).join("");
+    if (html) el.innerHTML = html; else el.remove();
+  };
+  const settle = (ps) => Promise.allSettled(ps).then((r) => r.map((x) => (x.status === "fulfilled" ? x.value : null)));
+
+  const jobs = [];
+  if (document.querySelector('[data-glance="assets"]') && !document.querySelector('[data-glance="assets"]').closest("[hidden]")) {
+    jobs.push(settle([
+      count(assets()),
+      count(db.from("checkouts").select("id", { count: "exact", head: true }).eq("accept_status", "pending")),
+    ]).then(([total, pending]) => put("assets", [
+      total != null && chip("", plural(total, "asset")),
+      pending ? chip("warn", pending + " waiting for confirmation") : null,
+    ])));
+  }
+  if (document.querySelector('[data-glance="dashboard"]') && !document.querySelector('[data-glance="dashboard"]').closest("[hidden]")) {
+    jobs.push(settle([
+      count(assets().not("status", "in", "(Retired,Lost)").or("extra->>last_verified.is.null,extra->>last_verified.lt." + cutoff)),
+      count(assets().eq("status", "Lost")),
+    ]).then(([unseen, lost]) => put("dashboard", [
+      unseen != null && (unseen ? chip("warn", unseen + " not seen in 90 days") : chip("ok", "Everything seen in 90 days")),
+      lost ? chip("bad", lost + " lost") : null,
+    ])));
+  }
+  if (document.querySelector('[data-glance="admin"]') && !document.querySelector('[data-glance="admin"]').closest("[hidden]")) {
+    jobs.push(settle([
+      count(db.from("checkouts").select("id", { count: "exact", head: true }).eq("accept_status", "disputed")),
+      count(db.from("people").select("id", { count: "exact", head: true }).eq("active", true).is("email", null)),
+    ]).then(([disputed, noEmail]) => put("admin", [
+      disputed ? chip("bad", plural(disputed, "disputed hand-over")) : null,
+      noEmail ? chip("", plural(noEmail, "person", "people") + " without an email") : null,
+    ])));
+  }
+  await Promise.all(jobs);
+}
 
 // ---------- sign-in logic (from /login) ----------
 const nextUrl=(()=>{const n=new URLSearchParams(location.search).get("next");return n&&n.startsWith("/")&&!n.startsWith("//")?n:null;})();
