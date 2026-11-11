@@ -196,7 +196,7 @@ const DEP_COLORS = {
       panel.className = "panel";
       panel.style.marginTop = "14px";
       panel.innerHTML = '<h2>Field activity</h2><div style="font-size:.82rem;color:var(--muted)">Temporarily unavailable — open issues and repairs could not be loaded.</div>';
-      main.appendChild(panel);
+      placeActivity(main, panel);
       return;
     }
     const tagFor = {}; items.forEach(i => { tagFor[i.id] = i.tag || i.serial || ("#" + i.id); });
@@ -224,7 +224,12 @@ const DEP_COLORS = {
         "</div></div>";
     }
     panel.innerHTML = html;
-    main.appendChild(panel);
+    placeActivity(main, panel);
+  }
+  function placeActivity(main, panel) {
+    const slot = document.getElementById("activitySlot");
+    panel.style.marginTop = "";
+    if (slot) slot.replaceWith(panel); else main.appendChild(panel);
   }
   function render(d, main, meta) {
     if (meta) meta.textContent = "Last fetched: " + new Date().toLocaleString("en-KE", { timeZone: "Africa/Nairobi", year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",timeZoneName:"short" });
@@ -237,31 +242,34 @@ const DEP_COLORS = {
     // Calculate health score (0-100) for conditional coloring
     const healthScore = calculateHealthScore(h, t.total);
 
-    // Fills the Status panel's dead space under the donut with a verification-freshness breakdown.
+    // Verification freshness, shown inside the Data health panel.
     const statusFreshnessBlock =
       '<div style="border-top:1px solid var(--hairline);margin:16px 0 12px"></div>' +
       '<h3 class="sub-h">Verification freshness</h3>' +
       verificationBars(verificationBreakdown(lastItems));
+    // Order: headline figures -> money -> what needs acting on -> ageing ->
+    // breakdowns -> data quality -> the full register.
+    const healthClass = healthScore >= 80 ? "good" : healthScore >= 50 ? "warn" : "bad";
     main.innerHTML =
       `<div class="kpis">
-        ${kpi("Total Assets", t.total, "across " + Object.keys(d.byLocation || {}).length + " branches", null, "neutral")}
-        ${kpi("Purchase Value", moneyKpi(t.purchaseValue), t.estimatePendingCount > 0 ? t.estimatePendingCount + " pending invoices (awaiting Finance)" : t.missingPrice + " missing price", t.estimatePendingCount > t.total * 0.3 || t.missingPrice > t.total * 0.3 ? "warn" : "neutral", "", true)}
-        ${kpi("Book Value (confirmed)", moneyKpi(t.confirmedBookValue), t.estimatePendingCount > 0 ? t.estimatePendingCount + " pending invoices excluded · incl. pending " + money(t.bookValue) : "after depreciation", "acc", "", true, t.estimatePendingCount > 0 ? "Confirmed = only assets with a known purchase price. Excludes " + t.estimatePendingCount + " assets awaiting past invoices from Finance. Full total including those pending: " + money(t.bookValue) + "." : "Confirmed = every asset has a known purchase price, so this is the full book value.")}
-        ${kpi("Fully Depreciated", t.fullyDepreciated, pct(t.fullyDepreciated, t.total), t.fullyDepreciated > t.total * 0.5 ? "warn" : "neutral")}
-        ${kpi("Data Health", healthScore + "%", h.missingPrice + " missing price · " + h.unverified + " unverified 90d+", healthScore >= 80 ? "good" : healthScore >= 50 ? "warn" : "bad")}
-      </div>
-      <p style="font-size:.72rem;color:var(--muted);margin:-6px 0 10px">Data Health target ≥95% within 60 days · owner: Roystone</p>` +
+        ${kpi("Total assets", t.total, "across " + Object.keys(d.byLocation || {}).length + " branches", null, "neutral")}
+        ${kpi("Purchase value", moneyKpi(t.purchaseValue), t.estimatePendingCount > 0 ? t.estimatePendingCount + " pending invoices (awaiting Finance)" : t.missingPrice + " missing price", t.estimatePendingCount > t.total * 0.3 || t.missingPrice > t.total * 0.3 ? "warn" : "neutral", "", true)}
+        ${kpi("Book value (confirmed)", moneyKpi(t.confirmedBookValue), t.estimatePendingCount > 0 ? t.estimatePendingCount + " pending invoices excluded · incl. pending " + money(t.bookValue) : "after depreciation", "acc", "", true, t.estimatePendingCount > 0 ? "Confirmed = only assets with a known purchase price. Excludes " + t.estimatePendingCount + " assets awaiting past invoices from Finance. Full total including those pending: " + money(t.bookValue) + "." : "Confirmed = every asset has a known purchase price, so this is the full book value.")}
+        ${kpi("Fully depreciated", t.fullyDepreciated, pct(t.fullyDepreciated, t.total), t.fullyDepreciated > t.total * 0.5 ? "warn" : "neutral")}
+        ${kpi("Data health", healthScore + "%", h.missingPrice + " missing price · " + h.unverified + " unverified 90d+", healthClass)}
+      </div>` +
       financePanel(d.finance) +
+      `<div class="pair"><div class="panel" id="warrantyPanel"><h2>Warranty expiries <span id="warrantyHead" style="font-size:.72rem;color:var(--muted);font-weight:400"></span><button class="btn-quiet" id="warrantyExport" style="float:right;padding:5px 12px;font-size:.76rem">Export</button></h2><div id="warrantyBody" style="font-size:.85rem;color:var(--muted)">Loading…</div></div>` +
+      `<div class="panel" id="activitySlot"><h2>Field activity</h2><div style="font-size:.85rem;color:var(--muted)">Loading…</div></div></div>` +
       fleetAgePanel(d.fleetAge) +
       // Two independent stacked columns rather than a strict 2x2 grid --
       // CSS Grid rows share height across the row no matter what
-      // align-items says, so a tall Status panel forced By Type's row to
-      // stay tall even once By Type's own card was short. Each .gcol flows
-      // on its own content height, so no more row-height coupling.
-      `<div class="grid"><div class="gcol">${panel(statusBars(d.byStatus) + statusFreshnessBlock, "Status")}${panel(bars(d.byLocation, "#3b82f6", 6, "location"), "By Location")}</div><div class="gcol">${panel(bars(d.byType, "#0d9488", 6, "type"), "By Type")}${panel(bars(d.byDepartment, "#8b5cf6", 6, "department"), "By Department")}</div></div>` +
-      healthStrip(h) +
-      `<div class="panel" id="warrantyPanel"><h2>Warranty expiries <span id="warrantyHead" style="font-size:.72rem;color:var(--muted);font-weight:400"></span><button class="btn-quiet" id="warrantyExport" style="float:right;padding:5px 12px;font-size:.76rem">Export</button></h2><div id="warrantyBody" style="font-size:.85rem;color:var(--muted)">Loading…</div></div>` +
-      `<div class="panel"><h2>Asset Register</h2><div id="tblInfo" style="margin-bottom:6px;font-size:.82rem;color:var(--muted);"></div><div class="tbl-scroll" id="tblBody"></div><div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><button class="btn-quiet" id="prevBtn" onclick="changePage(-1)">Prev</button><button class="btn-quiet" id="nextBtn" onclick="changePage(1)">Next</button><button class="btn-outline" id="exportDep" style="margin-left:auto;">Depreciation export</button><button class="btn-outline" id="exportCsv">Export CSV</button></div></div>`;
+      // align-items says. Status + Location balance Type + Department.
+      // Categories share one neutral hue: the colour carried no meaning.
+      // Verification freshness lives in Data health, beside "Unverified 90d+".
+      `<div class="grid"><div class="gcol">${panel(statusBars(d.byStatus), "Status")}${panel(bars(d.byLocation, CAT_COLOR, 6, "location"), "By location")}</div><div class="gcol">${panel(bars(d.byType, CAT_COLOR, 6, "type"), "By type")}${panel(bars(d.byDepartment, CAT_COLOR, 6, "department"), "By department")}</div></div>` +
+      `<div class="panel" style="margin:14px 0"><h2>Data health</h2><div class="health-head"><span class="score ${healthClass}">${healthScore}%</span><span class="target">Target ≥95% within 60 days · owner: Roystone</span></div>${healthStrip(h)}${statusFreshnessBlock}</div>` +
+      `<div class="panel"><h2>Asset register</h2><div id="tblInfo" style="margin-bottom:6px;font-size:.82rem;color:var(--muted);"></div><div class="tbl-scroll" id="tblBody"></div><div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><button class="btn-quiet" id="prevBtn" onclick="changePage(-1)">Prev</button><button class="btn-quiet" id="nextBtn" onclick="changePage(1)">Next</button><button class="btn-outline" id="exportDep" style="margin-left:auto;">Depreciation export</button><button class="btn-outline" id="exportCsv">Export CSV</button></div></div>`;
 
     // Now populate the table after the DOM elements exist
     renderTable();
@@ -319,9 +327,9 @@ const DEP_COLORS = {
     if (!f) return "";
     const it = (c, l, v, s) => '<div class="item"><div class="h">' + l + '</div><div class="v ' + c + '">' + v + "</div>" + (s ? '<div class="s">' + s + "</div>" : "") + "</div>";
     return (
-      '<div class="panel" style="margin:14px 0;"><h2>Financial Position</h2>' +
+      '<div class="panel" style="margin:14px 0;"><h2>Financial position</h2>' +
       '<div class="fin-grid">' +
-      it("", "Annual Depreciation", money(f.annualDepreciation), "P&L impact per year") +
+      it("", "Annual depreciation", money(f.annualDepreciation), "P&L impact per year") +
       it(f.replacementDue12mo ? "warn" : "", "Replacement due ≤12mo", f.replacementDue12mo + " assets · " + money(f.replacementCost12mo), "Fully or nearly depreciated") +
       it(f.idleAssets ? "warn" : "good", "Idle stock (unassigned)", f.idleAssets + " assets · " + money(f.idleBookValue) + " book value", "Redeploy before buying new") +
       it(lostAssetsClass(f.lostAssets), "Lost assets", f.lostAssets + " · " + money(f.lostCost) + " cost", "Write-off exposure") +
@@ -566,7 +574,8 @@ const DEP_COLORS = {
     );
   }
   const _barsData = {}; // key -> {entries, color, max} for the "+N more" dialog
-  const MORE_TITLES = { type: "By Type", location: "By Location", department: "By Department" };
+  const MORE_TITLES = { type: "By type", location: "By location", department: "By department" };
+  const CAT_COLOR = "var(--chart-3)";
   function barRowHtml(k, v, max, color) {
     return '<div class="bar-row"><div class="bar-top"><span class="lbl">' + esc(k) + '</span><span>' + v + "</span></div>" +
       '<div class="bar-track"><div class="bar-fill" data-w="' + ((v / max) * 100) + '" style="width:0;background:' + color + '"></div></div></div>';
@@ -636,8 +645,8 @@ const DEP_COLORS = {
     const ok = (v) => (v === 0 ? "good" : "bad");
     return (
       '<div class="health">' +
-      it(ok(h.missingTag), "Missing Tag", h.missingTag) + it(ok(h.missingSerial), "Missing Serial", h.missingSerial) +
-      it(ok(h.missingDate), "Missing Purchase Date", h.missingDate) + it(ok(h.missingPrice), "Missing Purchase Price", h.missingPrice) +
+      it(ok(h.missingTag), "Missing tag", h.missingTag) + it(ok(h.missingSerial), "Missing serial", h.missingSerial) +
+      it(ok(h.missingDate), "Missing purchase date", h.missingDate) + it(ok(h.missingPrice), "Missing purchase price", h.missingPrice) +
       it(ok(h.unverified), "Unverified 90d+", h.unverified) +
       "</div>");
   }

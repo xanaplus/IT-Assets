@@ -11,7 +11,7 @@
   <style>
   /* Colour, radius and elevation tokens come from /css/base.css. */
   :root {
-    --accent2:#38bdf8; --grey:#64748b; --purple:#a855f7; --book:#0d9488;
+    --accent2:#38bdf8; --grey:#64748b; --purple:#a855f7; --book:#0f766e; /* teal-700: white text 5.5:1 */
     --ease-out:cubic-bezier(0.32,0.72,0,1); --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
     --duration-fast:140ms; --duration-base:240ms; --duration-slow:420ms;
   }
@@ -48,6 +48,7 @@
   button.btn-outline{background:transparent;color:var(--text);border:1px solid var(--line)}
   button.btn-outline:hover{background:var(--panel2);border-color:var(--muted)}
   button.btn-book{background:var(--book);color:#fff}
+  [data-theme="dark"] button.btn-book{color:#042f2e}   /* light teal in dark mode needs dark ink */
   .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; margin:22px 0; }
   .kpi {
     background:var(--panel); border:1px solid var(--hairline); border-radius:var(--radius);
@@ -56,8 +57,7 @@
     box-shadow:var(--shadow-ambient), var(--inner-highlight);
     transition: transform .35s var(--ease-out), box-shadow .35s var(--ease-out);
   }
-  .kpi:hover { transform: translateY(-3px); box-shadow:var(--shadow-lifted), var(--inner-highlight); }
-  .kpi .label { color:var(--muted); font-size:.7rem; font-weight:600; text-transform:uppercase; letter-spacing:.09em; }
+  .kpi .label { color:var(--muted); font-size:.8rem; font-weight:500; }
   .kpi .value {
     /* clamp, not a fixed 1.8rem: full-size "KES 4,588,820" overflowed a
        176px card, so cards are wider now and the value shrinks to fit
@@ -96,13 +96,21 @@
   @media (prefers-reduced-motion: reduce) { .kpi[data-tip]::after { transition:none; } }
 
   /* KPI accent - subtle, not AI obvious */
-  .kpi { border-left: 2px solid var(--line); position:relative; }
-  .kpi::before { content:""; position:absolute; left:-2px; top:14px; bottom:14px; width:2px; border-radius:2px; opacity:.75; }
-  .kpi-good::before { background: var(--green); }
-  .kpi-warn::before { background: var(--orange); opacity:.55; }
-  .kpi-bad::before { background: var(--red); opacity:.6; }
-  .kpi-neutral::before { background: var(--accent); opacity:.45; }
-  .kpi-acc::before { background: var(--book); opacity:.7; }
+  /* status lives in the number's colour, not a side stripe */
+  .kpi-good .value { color: var(--green); }
+  .kpi-warn .value { color: var(--orange); }
+  .kpi-bad .value { color: var(--red); }
+  /* panels that sit side by side (Needs attention row) */
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; margin:14px 0; }
+  .pair > .panel { margin:0 !important; }
+  @media (max-width:820px){ .pair{ grid-template-columns:1fr; } }
+  .health-head { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin:-6px 0 14px; }
+  .health-head .score { font-size:1.6rem; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+  .health-head .score.good { color:var(--green); } .health-head .score.warn { color:var(--orange); } .health-head .score.bad { color:var(--red); }
+  .health-head .target { font-size:.8rem; color:var(--muted); }
+  .panel .health { margin:0; }
+  .panel .health .item { background:transparent; border:0; box-shadow:none; border-radius:0; padding:2px 0; }
+  .panel .health { gap:20px; }
   .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
   .gcol { display:flex; flex-direction:column; gap:16px; min-width:0; }
   @media (max-width:820px){ .grid{ grid-template-columns:1fr; } }
@@ -114,7 +122,7 @@
      breathing room, rather than each caller inlining a margin */
   .panel-block { margin:14px 0; }
   .panel h2 { font-size:.95rem; font-weight:600; letter-spacing:-.01em; margin-bottom:16px; color:var(--text); }
-  .sub-h { font-size:.78rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin:0 0 10px; }
+  .sub-h { font-size:.84rem; font-weight:600; color:var(--text); margin:0 0 10px; }
   .bars { display:flex; flex-direction:column; gap:12px; }
   .bars-more-btn { align-self:flex-start; padding:5px 12px; font-size:.76rem; }
   dialog#moreDialog {
@@ -145,19 +153,18 @@
   .kpis .kpi:nth-child(6) { animation-delay: 250ms; }
   @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
   .kpi, .panel, button, .pill, .bar-fill, .donut-wrap { transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-base) var(--ease-out), border-color var(--duration-fast) var(--ease-out), width var(--duration-slow) var(--ease-spring); }
-  .kpi:hover { transform: translateY(-3px); box-shadow:var(--shadow-lifted), var(--inner-highlight); }
   button:active { transform: scale(0.98); transition-duration:80ms; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .bar-fill { transition: none !important; } }
   .health .item {
     border:1px solid var(--hairline); border-radius:14px; padding:14px; font-size:.85rem;
     background:var(--panel); box-shadow:var(--shadow-ambient), var(--inner-highlight);
   }
-  .health .item .h { color:var(--muted); font-size:.68rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; }
+  .health .item .h { color:var(--muted); font-size:.78rem; font-weight:500; }
   .health .item .v { font-weight:700; margin-top:5px; font-size:1.05rem; letter-spacing:-.01em; }
   .bad { color:var(--red); } .ok-soft { color:var(--orange); } .good { color:var(--green); }
   table { width:100%; border-collapse:collapse; font-size:.82rem; }
   th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap; }
-  th { color:var(--muted); font-weight:600; text-transform:uppercase; font-size:.7rem; letter-spacing:.04em; }
+  th { color:var(--muted); font-weight:500; font-size:.76rem; }
   .pill { display:inline-block; padding:3px 10px; border-radius:999px; font-weight:600; font-size:.72rem; }
   .tbl-scroll { overflow:auto; max-height:480px; scroll-behavior:smooth; overscroll-behavior:contain; background:var(--panel); border-radius:12px; }
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -185,11 +192,9 @@
   .ep-foot { font-size:.68rem; color:#666; margin-top:10px; border-top:1px solid #ccc; padding-top:6px; }
 
   .fin-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
-  .fin-grid .item {
-    border:1px solid var(--hairline); border-radius:14px; padding:14px;
-    background:var(--panel); box-shadow:var(--shadow-ambient), var(--inner-highlight);
-  }
-  .fin-grid .item .h { color:var(--muted); font-size:.68rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; }
+  /* plain cells inside the panel, not cards within a card */
+  .fin-grid .item { padding:2px 0; }
+  .fin-grid .item .h { color:var(--muted); font-size:.78rem; font-weight:500; }
   .fin-grid .item .v { font-weight:700; margin-top:5px; font-size:1rem; letter-spacing:-.01em; }
   .fin-grid .item .v.warn { color:var(--orange); }
   .fin-grid .item .v.bad { color:var(--red); }
@@ -246,7 +251,6 @@
   <header>
     <div>
       <h1>Asset Inventory Dashboard <span class="dot">·</span> Xana</h1>
-      <div class="sub">Live portfolio view of the Xana Asset Inventory</div>
     </div>
     <div class="hdr-right" id="hdr-right">
       <span id="userInfo" style="display:none;align-items:center;gap:8px;">
@@ -301,7 +305,7 @@
   document.getElementById("moreDialogClose")?.addEventListener("click",()=>moreDialog.close());
   moreDialog?.addEventListener("click",(e)=>{ if(e.target===moreDialog) moreDialog.close(); }); // backdrop click
 </script>
-  <script src="/scanner-app/lib/supabase.min.js"></script><script src="/js/supabase-client.js?v=18"></script><script src="/js/ui.js?v=18"></script><script src="/summary/app.js?v=16"></script>
+  <script src="/scanner-app/lib/supabase.min.js"></script><script src="/js/supabase-client.js?v=19"></script><script src="/js/ui.js?v=18"></script><script src="/summary/app.js?v=18"></script>
 </body>
 </html>
 
