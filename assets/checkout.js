@@ -112,13 +112,19 @@
       closeSheet($(c.dataset.close === "co" ? "coSheet" : "ciSheet"));
     });
     document.addEventListener("keydown", (e) => {
-      if (e.key !== "Escape") return;
+      if (e.key !== "Escape" || document.querySelector("dialog:modal")) return;
       for (const id of ["coSheet", "ciSheet"]) if ($(id).classList.contains("open")) closeSheet($(id));
     });
 
     $("coPerson").addEventListener("input", personChanged);
     $("coAddAssetBtn").addEventListener("click", addAssetFromInput);
-    $("coAddAsset").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addAssetFromInput(); } });
+    $("coAddAsset").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      // Enter also confirms an IME composition; don't act on a half-typed value.
+      if (e.isComposing || e.keyCode === 229) return;
+      addAssetFromInput();
+    });
     $("coChips").addEventListener("click", (e) => {
       const b = e.target.closest("[data-rm]");
       if (!b) return;

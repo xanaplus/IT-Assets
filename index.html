@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-    <script>try{var __t=localStorage.getItem("xana_theme");if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t)}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
+    <meta name="color-scheme" content="light dark"><script>var __t;try{__t=localStorage.getItem("xana_theme")}catch(e){}if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t);document.querySelector("meta[name=color-scheme]").content=__t</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Xana Asset System</title>
   <link rel="icon" href="/scanner-app/icon-192.png" />
   <script src="/scanner-app/lib/supabase.min.js"></script>
   <script src="/js/supabase-client.js?v=19"></script>
-  <script src="/js/ui.js?v=18"></script>
+  <script src="/js/ui.js?v=19"></script>
   <link rel="stylesheet" href="/css/base.css" />
   <style>
     /* Colour, radius and elevation tokens come from /css/base.css. */
@@ -400,7 +400,9 @@ function noAccess(){
   msg("msg","Signed in — but your account has no access assigned yet. Contact IT Admin (it@xanalife.com).",true);
 }
 document.getElementById("btnSend")?.addEventListener("click",send);
-document.getElementById("email")?.addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+// Enter also confirms an IME composition; only submit once composition is done.
+const imeEnter=e=>e.key==="Enter"&&!e.isComposing&&e.keyCode!==229;
+document.getElementById("email")?.addEventListener("keydown",e=>{if(imeEnter(e))send();});
 document.getElementById("btnResend")?.addEventListener("click",send);
 document.getElementById("btnBack")?.addEventListener("click",()=>{
   show(document.getElementById("stepCode"),false);
@@ -430,7 +432,7 @@ async function pwdSignin(){
   }finally{b.disabled=false;b.textContent="Sign in";}
 }
 document.getElementById("btnPwdSignin")?.addEventListener("click",pwdSignin);
-document.getElementById("pwdPass")?.addEventListener("keydown",e=>{if(e.key==="Enter")pwdSignin();});
+document.getElementById("pwdPass")?.addEventListener("keydown",e=>{if(imeEnter(e))pwdSignin();});
 
 document.getElementById("btnSavePass")?.addEventListener("click",async()=>{
   const p1=document.getElementById("newPass1").value, p2=document.getElementById("newPass2").value;

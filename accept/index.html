@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
   <meta name="referrer" content="no-referrer" />
-  <script>try{var __t=localStorage.getItem("xana_theme");if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t)}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
+  <meta name="color-scheme" content="light dark"><script>var __t;try{__t=localStorage.getItem("xana_theme")}catch(e){}if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t);document.querySelector("meta[name=color-scheme]").content=__t</script>
   <title>Confirm your equipment · Xana</title>
   <link rel="icon" href="/scanner-app/icon-192.png" />
   <link rel="stylesheet" href="/css/base.css" />
@@ -46,7 +46,7 @@
     <h1 id="title">Confirm your equipment</h1>
     <div class="card" id="card"><p style="color:var(--muted);text-align:center">Loading…</p></div>
   </div>
-<script src="/js/ui.js?v=18"></script>
+<script src="/js/ui.js?v=19"></script>
 <script>
 "use strict";
 XanaUI.initTheme();

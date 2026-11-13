@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<script>try{var __t=localStorage.getItem("xana_theme");if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t)}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
+<meta name="color-scheme" content="light dark"><script>var __t;try{__t=localStorage.getItem("xana_theme")}catch(e){}if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t);document.querySelector("meta[name=color-scheme]").content=__t</script>
 <title>Assets - Detailed · Xana</title>
 <link rel="icon" href="/scanner-app/icon-192.png" />
 <script src="/scanner-app/lib/supabase.min.js"></script>
 <script src="/js/supabase-client.js?v=19"></script>
-<script src="/js/ui.js?v=18"></script>
+<script src="/js/ui.js?v=19"></script>
 <script src="/scanner-app/logic.js?v=17"></script>
 <script src="/scanner-app/lib/html5-qrcode.min.js"></script>
 <link rel="stylesheet" href="/css/base.css" />
@@ -405,23 +405,22 @@ function rolesIncludeAdmin(){
 }
 // Generic in-page confirm dialog (same shell for delete + bulk actions)
 function showConfirm(title,bodyHtml,okLabel,okColor,onOk){
-  closeModal();
-  const ov=document.createElement("div");
-  ov.id="delModal";
-  ov.style.cssText="position:fixed;inset:0;z-index:80;background:rgba(10,12,16,.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s ease";
-  ov.innerHTML='<div role="dialog" style="background:var(--card);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow-lifted);padding:22px;width:340px;max-width:90vw;text-align:center;transform:scale(.96);transition:transform .18s var(--ease-out)">'
-    +'<div style="font-weight:700;font-size:.95rem;margin-bottom:8px">'+title+'</div>'
-    +'<div style="font-size:.83rem;color:var(--muted);line-height:1.45;margin-bottom:16px">'+bodyHtml+'</div>'
-    +'<div id="dlgBtns" style="display:flex;gap:8px">'
-    +'<button class="btn secondary" id="dlgCancel" style="flex:1">Cancel</button>'
-    +'<button class="btn" id="dlgOk" style="flex:1;background:'+okColor+'">'+okLabel+'</button>'
-    +'</div></div>';
-  document.body.appendChild(ov);
-  requestAnimationFrame(()=>{ov.style.opacity="1";ov.firstElementChild.style.transform="scale(1)";});
-  const close=()=>{ov.style.opacity="0";setTimeout(()=>ov.remove(),180);};
+  // Native modal: Esc, click-outside, focus trap and focus return come free.
+  // Cancel (the safe action) takes initial focus.
+  const ov=XanaUI.openModal({
+    id:"delModal",labelledBy:"dlgTitle",
+    html:'<div style="text-align:center">'
+      +'<div id="dlgTitle" style="font-weight:700;font-size:.95rem;margin-bottom:8px">'+title+'</div>'
+      +'<div style="font-size:.83rem;color:var(--muted);line-height:1.45;margin-bottom:16px">'+bodyHtml+'</div>'
+      +'<div id="dlgBtns" style="display:flex;gap:8px">'
+      +'<button type="button" class="btn secondary" id="dlgCancel" style="flex:1" autofocus>Cancel</button>'
+      +'<button type="button" class="btn" id="dlgOk" style="flex:1;background:'+okColor+'">'+okLabel+'</button>'
+      +'</div></div>'
+  });
+  const close=()=>{ov.removeAttribute("data-busy");ov.close();};
   ov.querySelector("#dlgCancel").onclick=close;
-  ov.onclick=e=>{if(e.target===ov)close();};
   ov.querySelector("#dlgOk").onclick=async()=>{
+    ov.setAttribute("data-busy","");   // no dismissing mid-request
     const btns=ov.querySelector("#dlgBtns");
     btns.innerHTML='<div style="flex:1;display:flex;align-items:center;justify-content:center;gap:9px;padding:8px 0;color:var(--muted);font-size:.83rem"><span style="width:17px;height:17px;border:2.5px solid var(--border);border-top-color:'+okColor+';border-radius:50%;display:inline-block;animation:dsp .7s linear infinite"></span>Working…</div>';
     try{await onOk();close();}
@@ -1219,7 +1218,8 @@ async function beginEdit(cell,current){
   input.addEventListener("change",()=>done(true));   // dropdown pick / text Enter
   input.addEventListener("blur",()=>setTimeout(()=>done(true),80));
   input.addEventListener("keydown",e=>{
-    if(e.key==="Enter"){e.preventDefault();done(true);}
+    // Enter also confirms an IME composition: don't commit mid-composition.
+    if(e.key==="Enter"){e.preventDefault();if(!e.isComposing&&e.keyCode!==229)done(true);}
     if(e.key==="Escape"){                            // discard: restore original, no save
       const keep=orig;_openEditor=null;cell.textContent=keep;
       document.getElementById("editBar").innerHTML="";
@@ -1288,18 +1288,14 @@ function closeDetail(){
 // Full-size photo viewer — click the thumb to open, click out / Close / Esc.
 function openPhotoViewer(url, tag){
   closeModal();
-  document.getElementById("photoViewer")?.remove();
-  const ov=document.createElement("div");
-  ov.id="photoViewer";
-  ov.style.cssText="position:fixed;inset:0;z-index:90;background:rgba(8,10,14,.87);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:20px;opacity:0;transition:opacity .18s ease;cursor:zoom-out";
-  ov.innerHTML='<img src="'+esc(url)+'" alt="Asset photo" style="max-width:92vw;max-height:80vh;border-radius:12px;object-fit:contain" />'
-    +'<div style="display:flex;gap:10px;align-items:center"><span style="color:#fff;font-size:.85rem;font-weight:600">'+esc(tag||"Asset")+'</span><button class="btn secondary" id="photoClose" type="button">Close</button></div>';
-  document.body.appendChild(ov);
-  requestAnimationFrame(()=>{ov.style.opacity="1";});
-  const close=()=>{ov.style.opacity="0";setTimeout(()=>ov.remove(),180);document.removeEventListener("keydown",onKey);};
-  const onKey=(e)=>{if(e.key==="Escape")close();};
-  document.addEventListener("keydown",onKey);
-  ov.addEventListener("click",(e)=>{if(e.target===ov||e.target.closest("#photoClose"))close();});
+  // Native modal <dialog closedby="any">: Esc and click-outside close it with
+  // no document-level key listener to clean up.
+  const ov=XanaUI.openModal({
+    id:"photoViewer",className:"xdlg-photo",label:"Photo of "+(tag||"asset"),
+    html:'<img src="'+esc(url)+'" alt="Asset photo" style="max-width:92vw;max-height:80vh;border-radius:12px;object-fit:contain" />'
+      +'<div style="display:flex;gap:10px;align-items:center"><span style="color:#fff;font-size:.85rem;font-weight:600">'+esc(tag||"Asset")+'</span><button class="btn secondary" id="photoClose" type="button" autofocus>Close</button></div>'
+  });
+  ov.querySelector("#photoClose").addEventListener("click",()=>ov.close());
 }
 
 // Client-side image compression (Canvas 2D downsample + JPEG DCT encode).
@@ -1342,9 +1338,10 @@ function closeSheet(el){
   const back=_sheetReturn;_sheetReturn=null;
   if(back&&document.contains(back))setTimeout(()=>back.focus(),120);
 }
-// The inline editor and the photo viewer own their own Escape handling.
+// The inline editor and the native modal dialogs own their own Escape handling
+// (Esc in a modal must close only the modal, not the sheet underneath).
 document.addEventListener("keydown",e=>{
-  if(e.key!=="Escape")return;
+  if(e.key!=="Escape"||document.querySelector("dialog:modal"))return;
   if(scanSheet.classList.contains("open")){stopScan();return;}
   if(addSheet.classList.contains("open"))closeAdd();
 });

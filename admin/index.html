@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>try{var __t=localStorage.getItem("xana_theme");if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t)}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
+    <meta name="color-scheme" content="light dark"><script>var __t;try{__t=localStorage.getItem("xana_theme")}catch(e){}if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t);document.querySelector("meta[name=color-scheme]").content=__t</script>
   <title>Admin · Xana</title>
   <link rel="icon" href="/scanner-app/icon-192.png" />
   <script src="/scanner-app/lib/supabase.min.js"></script>
   <script src="/js/supabase-client.js?v=19"></script>
-  <script src="/js/ui.js?v=18"></script>
+  <script src="/js/ui.js?v=19"></script>
   <link rel="stylesheet" href="/css/base.css" />
   <link rel="stylesheet" href="/css/nav.css" />
   <style>
@@ -742,24 +742,23 @@ document.getElementById("usersList").addEventListener("change",async(e)=>{
 
 // ---------- in-page dialog (replaces browser confirm/alert/prompt) ----------
 function showDialog({title,body,confirmText="Confirm",danger=false,onConfirm}){
-  closeModal();
-  const ov=document.createElement("div");
-  ov.id="modalOv";
-  ov.style.cssText="position:fixed;inset:0;z-index:80;background:rgba(10,12,16,.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s ease";
-  ov.innerHTML='<div role="dialog" style="background:var(--card);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow-lifted);padding:22px;width:340px;max-width:90vw;text-align:center;transform:scale(.96);transition:transform .18s var(--ease-out)">'
-    +'<div style="font-weight:700;font-size:.95rem;margin-bottom:8px">'+esc(title)+'</div>'
-    +'<div style="font-size:.83rem;color:var(--muted);line-height:1.45;margin-bottom:16px">'+body+'</div>'
-    +'<div id="dlgBtns" style="display:flex;gap:8px">'
-    +'<button class="secondary" id="dlgCancel" style="flex:1">Cancel</button>'
-    +'<button id="dlgOk" class="'+(danger?"danger":"")+'" style="flex:1'+'">'+esc(confirmText)+'</button>'
-    +'</div></div>';
-  document.body.appendChild(ov);
-  requestAnimationFrame(()=>{ov.style.opacity="1";ov.firstElementChild.style.transform="scale(1)";});
-  const close=()=>{ov.style.opacity="0";setTimeout(()=>ov.remove(),180);};
+  // Native modal: Esc, click-outside, focus trap and focus return come free.
+  // Cancel (the safe action) takes initial focus.
+  const ov=XanaUI.openModal({
+    id:"modalOv",labelledBy:"dlgTitle",
+    html:'<div style="text-align:center">'
+      +'<div id="dlgTitle" style="font-weight:700;font-size:.95rem;margin-bottom:8px">'+esc(title)+'</div>'
+      +'<div style="font-size:.83rem;color:var(--muted);line-height:1.45;margin-bottom:16px">'+body+'</div>'
+      +'<div id="dlgBtns" style="display:flex;gap:8px">'
+      +'<button type="button" class="secondary" id="dlgCancel" style="flex:1" autofocus>Cancel</button>'
+      +'<button type="button" id="dlgOk" class="'+(danger?"danger":"")+'" style="flex:1'+'">'+esc(confirmText)+'</button>'
+      +'</div></div>'
+  });
+  const close=()=>{ov.removeAttribute("data-busy");ov.close();};
   ov.querySelector("#dlgCancel").onclick=close;
-  ov.onclick=e=>{if(e.target===ov)close();};
   ov.querySelector("#dlgOk").onclick=async()=>{
-    // swap buttons for a spinner while work runs
+    // swap buttons for a spinner while work runs; no dismissing mid-request
+    ov.setAttribute("data-busy","");
     const btns=ov.querySelector("#dlgBtns");
     btns.innerHTML='<div style="flex:1;display:flex;align-items:center;justify-content:center;gap:9px;padding:8px 0;color:var(--muted);font-size:.83rem"><span style="width:17px;height:17px;border:2.5px solid var(--border);border-top-color:'+(danger?"#dc2626":"var(--accent)")+';border-radius:50%;display:inline-block;animation:dsp .7s linear infinite"></span>Working…</div>';
     try{
@@ -808,34 +807,29 @@ document.getElementById("usersList").addEventListener("click",async(e)=>{
   }
 });
 function showResetDialog(userId){
-  closeModal();
-  const ov=document.createElement("div");
-  ov.id="modalOv";
-  ov.style.cssText="position:fixed;inset:0;z-index:80;background:rgba(10,12,16,.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s ease";
-  ov.innerHTML='<div role="dialog" style="background:var(--card);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow-lifted);padding:22px;width:360px;max-width:90vw;transform:scale(.96);transition:transform .18s var(--ease-out)">'
-    +'<div style="font-weight:700;font-size:.95rem;margin-bottom:6px">Reset password</div>'
-    +'<div style="font-size:.8rem;color:var(--muted);margin-bottom:10px">Set a temporary password. Share it in person or by phone — the user must choose their own at next sign-in.</div>'
-    +'<input type="text" id="rpw" placeholder="temporary password (min 8 chars)" autocomplete="off" style="width:100%;margin-bottom:14px"/>'
-    +'<div id="dlgBtns" style="display:flex;gap:8px">'
-    +'<button class="secondary" id="dlgCancel" style="flex:1">Cancel</button>'
-    +'<button id="dlgOk" style="flex:1">Reset</button>'
-    +'</div></div>';
-  document.body.appendChild(ov);
-  requestAnimationFrame(()=>{ov.style.opacity="1";ov.firstElementChild.style.transform="scale(1)";});
-  const close=()=>{ov.style.opacity="0";setTimeout(()=>ov.remove(),180);};
+  const ov=XanaUI.openModal({
+    id:"modalOv",labelledBy:"dlgTitle",width:"360px",
+    html:'<div id="dlgTitle" style="font-weight:700;font-size:.95rem;margin-bottom:6px">Reset password</div>'
+      +'<div style="font-size:.8rem;color:var(--muted);margin-bottom:10px">Set a temporary password. Share it in person or by phone — the user must choose their own at next sign-in.</div>'
+      +'<input type="text" id="rpw" aria-label="Temporary password" placeholder="temporary password (min 8 chars)" autocomplete="off" style="width:100%;margin-bottom:14px" autofocus/>'
+      +'<div id="dlgBtns" style="display:flex;gap:8px">'
+      +'<button type="button" class="secondary" id="dlgCancel" style="flex:1">Cancel</button>'
+      +'<button type="button" id="dlgOk" style="flex:1">Reset</button>'
+      +'</div>'
+  });
+  const close=()=>{ov.removeAttribute("data-busy");ov.close();};
   ov.querySelector("#dlgCancel").onclick=close;
-  ov.onclick=e=>{if(e.target===ov)close();};
-  setTimeout(()=>ov.querySelector("#rpw").focus(),120);
   ov.querySelector("#dlgOk").onclick=async()=>{
     const pw=ov.querySelector("#rpw").value.trim();
     if(pw.length<8){toast("Password must be at least 8 characters.",true);return;}
+    ov.setAttribute("data-busy","");
     const btns=ov.querySelector("#dlgBtns");
     btns.innerHTML='<div style="flex:1;display:flex;align-items:center;justify-content:center;gap:9px;padding:8px 0;color:var(--muted);font-size:.83rem"><span style="width:17px;height:17px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;display:inline-block;animation:dsp .7s linear infinite"></span>Resetting…</div>';
     try{
       await api("reset_password",{userId,password:pw});
       close();
       toast("Password reset — share it out-of-band",false);
-    }catch(err){toast(err.message,true);}
+    }catch(err){close();toast(err.message,true);}
   };
 }
 
@@ -934,7 +928,11 @@ document.getElementById("pane-lists").addEventListener("click",e=>{
 });
 document.getElementById("pane-lists").addEventListener("keydown",e=>{
   const inp=e.target.closest("input[id^='add-']");
-  if(inp&&e.key==="Enter"){e.preventDefault();addChoice(inp.id.slice(4));}
+  if(inp&&e.key==="Enter"){
+    e.preventDefault();
+    if(e.isComposing||e.keyCode===229)return;   // Enter confirming an IME composition
+    addChoice(inp.id.slice(4));
+  }
 });
 document.getElementById("pane-lists").addEventListener("input",e=>{
   const f=e.target.closest("input[data-filter]");

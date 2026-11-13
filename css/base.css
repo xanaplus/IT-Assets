@@ -221,3 +221,55 @@ html {
   color: color-mix(in oklch, var(--c) 50%, white);
   background: color-mix(in oklch, var(--c) 20%, transparent);
 }
+
+/* Native modal dialogs (XanaUI.openModal). The <dialog> is the card; the
+   browser's ::backdrop is the scrim. Entry fades in via @starting-style; exit
+   fades where display/overlay can transition (Chromium, Safari 18) and is
+   instant elsewhere. display is never set on the closed state. */
+dialog.xdlg {
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lifted);
+  padding: 22px;
+  margin: auto;   /* the UA centres modals with margin:auto; pages' `* { margin:0 }` resets kill it */
+  width: 340px;
+  max-width: 90vw;
+  opacity: 0;
+  transition-property: opacity, transform, display, overlay;
+  transition-duration: .18s;
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+dialog.xdlg[open] { opacity: 1; }
+@starting-style { dialog.xdlg[open] { opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  dialog.xdlg { transform: scale(.96); }
+  dialog.xdlg[open] { transform: scale(1); }
+  @starting-style { dialog.xdlg[open] { transform: scale(.96); } }
+}
+/* both rules: stop scroll over the backdrop / inside the dialog chaining to the page */
+dialog.xdlg:modal { overscroll-behavior: contain; }
+dialog.xdlg::backdrop {
+  background-color: rgb(10 12 16 / 0);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  transition-property: background-color, display, overlay;
+  transition-duration: .18s;
+  transition-behavior: allow-discrete;
+}
+dialog.xdlg[open]::backdrop { background-color: rgb(10 12 16 / .5); }
+@starting-style { dialog.xdlg[open]::backdrop { background-color: rgb(10 12 16 / 0); } }
+
+/* Full-size photo viewer: no card, just the image over a dark scrim. */
+dialog.xdlg.xdlg-photo {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  width: auto;
+  max-width: 92vw;
+}
+dialog.xdlg.xdlg-photo[open] { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+dialog.xdlg.xdlg-photo[open]::backdrop { background-color: rgb(8 10 14 / .87); }

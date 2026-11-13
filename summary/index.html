@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>try{var __t=localStorage.getItem("xana_theme");if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t)}catch(e){document.documentElement.setAttribute("data-theme","light")}</script>
+    <meta name="color-scheme" content="light dark"><script>var __t;try{__t=localStorage.getItem("xana_theme")}catch(e){}if(__t!=="dark"&&__t!=="light")__t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",__t);document.querySelector("meta[name=color-scheme]").content=__t</script>
   <title>Asset Inventory Dashboard · Xana</title>
   <link rel="icon" href="/scanner-app/icon-192.png" />
   <link rel="stylesheet" href="/css/base.css" />
@@ -129,9 +129,13 @@
     border:1px solid var(--hairline); border-radius:var(--radius); padding:22px;
     background:var(--panel); color:var(--text); box-shadow:var(--shadow-lifted);
     width:min(420px, 90vw); max-height:min(70vh, 600px);
+    margin:auto; /* the UA centres modals with margin:auto; the page's margin reset killed it */
   }
   dialog#moreDialog::backdrop { background:rgba(0,0,0,.45); backdrop-filter:blur(2px); }
   dialog#moreDialog[open] { display:flex; flex-direction:column; gap:16px; }
+  /* stop scroll over the backdrop / inside the dialog chaining to the page */
+  dialog#moreDialog:modal { overscroll-behavior:contain; }
+  dialog#moreDialog::backdrop { overflow:hidden; overscroll-behavior:contain; }
   .more-dialog-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
   .more-dialog-head h2 { font-size:.95rem; font-weight:600; letter-spacing:-.01em; }
   #moreDialogBody { overflow:auto; }
@@ -145,12 +149,10 @@
   .kpi, .panel, .health .item, .fin-grid .item { animation: rise 480ms var(--ease-out) backwards; }
   .grid { animation: rise 480ms var(--ease-out) backwards; animation-delay: 60ms; }
   .fin-grid { animation: rise 480ms var(--ease-out) backwards; animation-delay: 80ms; }
-  .kpis .kpi:nth-child(1) { animation-delay: 0ms; }
-  .kpis .kpi:nth-child(2) { animation-delay: 50ms; }
-  .kpis .kpi:nth-child(3) { animation-delay: 100ms; }
-  .kpis .kpi:nth-child(4) { animation-delay: 150ms; }
-  .kpis .kpi:nth-child(5) { animation-delay: 200ms; }
-  .kpis .kpi:nth-child(6) { animation-delay: 250ms; }
+  /* Stagger by position: sibling-index() is 1-based, so subtract one to keep
+     the first card at 0ms. Browsers without it ignore the declaration and the
+     cards simply rise together. Reduced motion is handled by the rule below. */
+  .kpis .kpi { animation-delay: calc((sibling-index() - 1) * 50ms); }
   @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
   .kpi, .panel, button, .pill, .bar-fill, .donut-wrap { transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-base) var(--ease-out), border-color var(--duration-fast) var(--ease-out), width var(--duration-slow) var(--ease-spring); }
   button:active { transform: scale(0.98); transition-duration:80ms; }
@@ -289,7 +291,7 @@
   <footer>Xana Tech &amp; Data — auto-generated from live data · straight-line depreciation · data refreshes on every open</footer>
 </div></div>
 
-<dialog id="moreDialog">
+<dialog id="moreDialog" closedby="any" aria-labelledby="moreDialogTitle">
   <div class="more-dialog-head">
     <h2 id="moreDialogTitle">All</h2>
     <button type="button" class="btn-ghost" id="moreDialogClose" aria-label="Close">Close</button>
@@ -303,9 +305,17 @@
   overlay?.addEventListener("click",()=>{navMenu.classList.remove("open");overlay.classList.remove("open");});
   const moreDialog=document.getElementById("moreDialog");
   document.getElementById("moreDialogClose")?.addEventListener("click",()=>moreDialog.close());
-  moreDialog?.addEventListener("click",(e)=>{ if(e.target===moreDialog) moreDialog.close(); }); // backdrop click
+  // closedby="any" gives click-outside natively. Safari lacks it: test the
+  // pointer position there (event.target is also the dialog for clicks on its
+  // own padding), requiring press and release both outside.
+  if(moreDialog && !("closedBy" in HTMLDialogElement.prototype)){
+    const outside=(e)=>{const r=moreDialog.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom;};
+    let pressedOutside=false;
+    moreDialog.addEventListener("pointerdown",(e)=>{pressedOutside=outside(e);});
+    moreDialog.addEventListener("pointerup",(e)=>{if(pressedOutside&&outside(e))moreDialog.close();});
+  }
 </script>
-  <script src="/scanner-app/lib/supabase.min.js"></script><script src="/js/supabase-client.js?v=19"></script><script src="/js/ui.js?v=18"></script><script src="/summary/app.js?v=18"></script>
+  <script src="/scanner-app/lib/supabase.min.js"></script><script src="/js/supabase-client.js?v=19"></script><script src="/js/ui.js?v=19"></script><script src="/summary/app.js?v=18"></script>
 </body>
 </html>
 
