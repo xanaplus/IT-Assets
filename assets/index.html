@@ -113,7 +113,7 @@
   .info{background:var(--msg-info-bg);color:var(--muted);border:1px solid var(--border)}
   table{width:100%;border-collapse:collapse;font-size:.78rem}
   th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
-  th{color:var(--muted);font-size:.76rem;font-weight:500;cursor:pointer}
+  th{color:var(--muted);font-size:.76rem;font-weight:500}
   th:hover{color:var(--text)}
   .tbl-scroll{overflow:auto;max-height:max(380px,calc(100vh - 290px));border:1px solid var(--hairline);border-radius:var(--radius);scroll-behavior:smooth;background:var(--card);box-shadow:var(--shadow-ambient), var(--inner-highlight);overscroll-behavior:auto}   /* chain to the page at top/bottom */
   thead th{position:sticky;top:0;z-index:2;white-space:nowrap;background:var(--card);box-shadow:inset 0 -1px 0 var(--border)}
@@ -154,12 +154,25 @@
   #main tbody tr{transition:background-color .12s ease}
   #main tbody tr:hover{background:color-mix(in oklch,var(--accent) 5%,transparent)}
   #main tbody tr.current{background:color-mix(in oklch,var(--accent) 10%,transparent)}
-  #main tbody tr.current td:first-child{box-shadow:inset 2px 0 0 var(--accent)}
+  #main tbody tr.current > :first-child{box-shadow:inset 2px 0 0 var(--accent)}
+  /* the sticky tag cell has its own fill; tint it with the row */
+  #main tbody tr:hover > th{background:color-mix(in oklch,var(--accent) 5%,var(--card))}
+  #main tbody tr.current > th{background:color-mix(in oklch,var(--accent) 10%,var(--card))}
   #main tbody tr:last-child td{border-bottom:0}
   #main td{font-size:.84rem}
   #main td.num{font-variant-numeric:tabular-nums;color:var(--muted)}
   #main td.tnum{font-variant-numeric:tabular-nums}
-  .sortlabel svg{vertical-align:-2px;margin-left:3px;color:var(--accent)}
+  /* Sort headers are real buttons; undo the page's generic button chrome. */
+  .sortbtn{background:none;border:0;border-radius:4px;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;display:inline-flex;align-items:center;min-height:24px}
+  .sortbtn:hover{box-shadow:none;color:var(--text)}
+  .sortbtn:active{transform:none}
+  th[aria-sort] .sortbtn{color:var(--text)}
+  .sortbtn svg{margin-left:3px;color:var(--accent)}
+  .sortbtn:focus-visible,.rowlink:focus-visible,.tbl-scroll:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  /* Tag is the row header: sticky so it stays in view while scrolling sideways (phones). */
+  tbody th{position:sticky;left:0;z-index:1;background:var(--card);color:var(--text);font-size:inherit;font-weight:inherit;cursor:inherit}
+  thead th:first-child{left:0;z-index:3}
+  .rowlink{color:inherit;font-weight:700;text-decoration:none;border-radius:4px}
   .editrow{cursor:pointer;border-radius:6px;transition:background .12s ease}
   .editrow:hover{background:color-mix(in oklch, var(--accent) 6%, transparent)}
   .editrow:hover>span:first-child{color:var(--text)}
@@ -309,6 +322,7 @@
       <button class="btn ghost" id="btnCopyView" title="Copy a link to this filtered view"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span class="lbl">Copy link</span></button>
       <button class="btn ghost" id="btnExportView" title="Download the rows currently matching, as CSV"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="lbl">Export</span></button>
     </div>
+    <div id="regStatus" class="sr-only" role="status"></div>
     <div id="main"><div class="card"><div class="skel" style="height:16px;width:32%;margin-bottom:16px"></div><div class="skel" style="height:30px;margin-bottom:8px"></div><div class="skel" style="height:30px;margin-bottom:8px"></div><div class="skel" style="height:30px;margin-bottom:8px"></div><div class="skel" style="height:30px;margin-bottom:8px"></div><div class="skel" style="height:30px"></div></div></div>
     <div id="people" class="hidden"></div>
     <div id="detail"></div>
@@ -594,7 +608,7 @@ function applyFilters(keepPage){
   if(!keepPage) currentPage=0;
   const lastPage=Math.max(0,Math.ceil(filtered.length/PAGE_SIZE)-1);
   if(currentPage>lastPage) currentPage=lastPage;
-  renderTable(); viewToUrl();
+  viewToUrl(); renderTable();   // URL first: row links are built from it
 }
 const VIEW_KEYS=["type","location","status","department"];
 // Sort keys the table actually renders — a stale ?sort=purchase link (the
@@ -663,49 +677,48 @@ function renderTable(){
     const fkey=FILTERABLE[label];
     const funnel=fkey?'<span class="fwrap"><button type="button" class="funnel'+(colFilters[fkey].size?" active":"")+'" data-funnel="'+fkey+'" title="Filter '+label.toLowerCase()+'" aria-label="Filter by '+label.toLowerCase()+'">'+FUNNEL_ICON+(colFilters[fkey].size?'<span class="fcount">'+colFilters[fkey].size+'</span>':'')+'</button></span>':"";
     const arrow=(sortKey===key)?'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(sortDir===1?'<path d="M6 15l6-6 6 6"/>':'<path d="M6 9l6 6 6-6"/>')+'</svg>':"";
-    // aria-sort tells a screen reader which column is ordered and how; the
-    // th itself is focusable so the sort is reachable without a mouse.
-    const aria=(sortKey===key)?(sortDir===1?"ascending":"descending"):"none";
-    return '<th data-sort="'+key+'" tabindex="0" aria-sort="'+aria+'"><span class="sortlabel" data-sort="'+key+'">'+label+arrow+"</span>"+funnel+"</th>";
+    // A real <button> per sortable header (the label stays the column name);
+    // aria-sort only on the sorted column, which is what a screen reader reads.
+    const aria=(sortKey===key)?' aria-sort="'+(sortDir===1?"ascending":"descending")+'"':"";
+    return '<th scope="col"'+aria+'><button type="button" class="sortbtn" data-sort="'+key+'">'+label+arrow+"</button>"+funnel+"</th>";
   }).join("");
   const openId=new URLSearchParams(location.search).get("id")||"";
+  // The tag is the row header and a real link to the addressable card (?id=),
+  // so Ctrl/Cmd-click opens it in a new tab; a plain click opens it in place.
+  const rowHref=it=>{const p=new URLSearchParams(location.search);p.set("id",String(it.tag||it.id));return "?"+p.toString();};
   const rows=slice.map((it,idx)=>`
-    <tr data-idx="${start+idx}" tabindex="0" style="cursor:pointer" title="Open ${esc(it.tag||"asset")}"${openId&&String(it.tag||it.id)===openId?' class="current"':''}>
-      <td><b>${esc(it.tag)}</b></td><td>${esc(it.type)}</td><td>${esc(it.model)}</td><td class="tnum">${esc(it.serial)}</td><td>${esc(it.employee)}</td><td>${esc(it.department||"")}</td><td>${esc(it.location)}</td>
+    <tr data-idx="${start+idx}" style="cursor:pointer" title="Open ${esc(it.tag||"asset")}"${openId&&String(it.tag||it.id)===openId?' class="current"':''}>
+      <th scope="row"><a class="rowlink" href="${esc(rowHref(it))}">${esc(it.tag||"#"+it.id)}</a></th><td>${esc(it.type)}</td><td>${esc(it.model)}</td><td class="tnum">${esc(it.serial)}</td><td>${esc(it.employee)}</td><td>${esc(it.department||"")}</td><td>${esc(it.location)}</td>
       <td><span class="pill" style="--c:${statusColor(it.status)}">${esc(it.status)}</span></td>
       <td class="num">${esc(it.purchaseDate)}</td><td>${esc(it.condition||"")}</td>
     </tr>`).join("");
   const chev=d=>'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>';
-  main.innerHTML='<div class="card">'+metaLine()+'<div class="tbl-scroll"><table><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div>'
+  main.innerHTML='<div class="card">'+metaLine()+'<div class="tbl-scroll" role="region" tabindex="0" aria-labelledby="regCaption"><table><caption id="regCaption" class="sr-only">Asset register</caption><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div>'
     +'<div class="reg-foot"><button class="btn secondary" id="prev" aria-label="Previous page" '+(currentPage===0?'disabled':'')+'>'+chev("M15 6l-6 6 6 6")+'</button>'
     +'<span class="range" aria-live="polite">'+(start+1)+'–'+end+' of '+filtered.length+'</span>'
     +'<button class="btn secondary" id="next" aria-label="Next page" '+(end>=filtered.length?'disabled':'')+'>'+chev("M9 6l6 6-6 6")+'</button>'
     +'<span class="hint2">Click a heading to sort · funnel to filter</span></div></div>';
-  // Enter/Space on a focused header or row does what a click did.
-  const keyActivate=(el,fn)=>el.addEventListener("keydown",e=>{
-    if(e.key!=="Enter"&&e.key!==" ")return;
-    if(e.target.closest(".funnel"))return;   // the funnel button owns its keys
-    e.preventDefault();
-    fn();
-  });
-  main.querySelectorAll("th[data-sort]").forEach(th=>{
-    const sort=()=>{
-      const k=th.getAttribute("data-sort");
-      if(sortKey===k)sortDir=-sortDir;else{sortKey=k;sortDir=1;}
-      applyFilters();
-    };
-    th.addEventListener("click",e=>{ if(e.target.closest(".funnel"))return; sort(); });
-    keyActivate(th,sort);
-  });
+  main.querySelectorAll("button.sortbtn").forEach(b=>b.addEventListener("click",()=>{
+    const k=b.dataset.sort, label=b.textContent.trim();
+    if(sortKey===k)sortDir=-sortDir;else{sortKey=k;sortDir=1;}
+    applyFilters();
+    // The table re-rendered (the sort spans every page, not just these rows):
+    // put focus back on the header just used, and say once what changed.
+    document.querySelector('#main .sortbtn[data-sort="'+k+'"]')?.focus();
+    const st=document.getElementById("regStatus");
+    if(st)st.textContent="Sorted by "+label+", "+(sortDir===1?"ascending":"descending");
+  }));
   main.querySelectorAll("button[data-funnel]").forEach(b=>b.addEventListener("click",(ev)=>{
     ev.stopPropagation();
     openFunnelPop(b.dataset.funnel,b);
   }));
-  main.querySelectorAll("tbody tr").forEach(tr=>{
-    const open=()=>{const it=filtered[parseInt(tr.getAttribute("data-idx"),10)];if(it)showDetail(it);};
-    tr.addEventListener("click",open);
-    keyActivate(tr,open);
-  });
+  // Keyboard reaches a row through its tag link (Enter fires click); the rest
+  // of the row stays a mouse/touch target.
+  main.querySelectorAll("tbody tr").forEach(tr=>tr.addEventListener("click",e=>{
+    if(e.target.closest("a.rowlink")&&(e.ctrlKey||e.metaKey||e.shiftKey||e.button!==0))return;   // new tab/window: browser's job
+    e.preventDefault();
+    const it=filtered[parseInt(tr.getAttribute("data-idx"),10)];if(it)showDetail(it);
+  }));
   document.getElementById("prev")?.addEventListener("click",()=>{if(currentPage>0){currentPage--;renderTable();}});
   document.getElementById("next")?.addEventListener("click",()=>{if(end<filtered.length){currentPage++;renderTable();}});
 }

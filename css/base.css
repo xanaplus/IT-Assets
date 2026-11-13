@@ -277,3 +277,7 @@ dialog.xdlg.xdlg-photo[open]::backdrop { background-color: rgb(8 10 14 / .87); }
 /* In-dialog status line: toast() writes here while a modal is open. */
 dialog [data-msg]:not(:empty) { margin: 0 0 12px; font-size: .82rem; line-height: 1.4; color: var(--muted); text-align: left; }
 dialog [data-msg].is-err { color: var(--destructive); }
+
+/* Visually hidden but still read by screen readers (captions, status lines).
+   Not display:none, which would remove it from the accessibility tree. */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
