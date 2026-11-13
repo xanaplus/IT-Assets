@@ -188,6 +188,12 @@
   /* --- add form sheet --- */
   .sheet{position:fixed;inset:0;z-index:70;display:none}   /* must clear .navbar's z-index:46 (css/nav.css) -- same value admin/index.html already uses for its own sheet */
   .sheet.open{display:block}
+  /* The sheets are modal <dialog>s (showModal): strip the UA dialog box so the
+     element is just a full-viewport layer, and let the panel's own
+     .sheet-backdrop be the scrim (it also carries the click-to-close). */
+  dialog.sheet{margin:0;padding:0;border:0;background:transparent;color:inherit;width:100%;height:100%;max-width:none;max-height:none;overflow:hidden}
+  dialog.sheet:modal{overscroll-behavior:contain}
+  dialog.sheet::backdrop{background:transparent;overflow:hidden;overscroll-behavior:contain}
   .sheet-backdrop{position:absolute;inset:0;background:rgba(8,10,14,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity var(--duration-base) var(--ease-out)}
   .sheet.open .sheet-backdrop{opacity:1}
   /* Tinted panel - a quiet step down from the page surface in light mode,
@@ -310,7 +316,7 @@
 </div>
 
 <!-- Add Asset Sheet -->
-<div class="sheet" id="addSheet" role="dialog" aria-modal="true" aria-labelledby="addSheetTitle">
+<dialog class="sheet" id="addSheet" aria-labelledby="addSheetTitle">
   <div class="sheet-backdrop" id="addBackdrop"></div>
   <div class="sheet-panel">
     <h2 id="addSheetTitle">+ Add Asset <button type="button" class="theme-toggle" id="addClose" aria-label="Close the add asset form">✕</button></h2>
@@ -343,13 +349,13 @@
     <div id="bundleRows" class="hidden"></div>
     <button type="button" class="btn secondary" id="bundleAddRow" style="display:none;margin-top:8px">+ Add component</button>
     <div id="bundleSum" style="display:none;font-size:.75rem;color:var(--muted);margin-top:6px"></div>
-    <div id="addMsg" style="margin-top:2px"></div>
+    <div id="addMsg" data-msg role="status" style="margin-top:2px"></div>
     <div class="form-actions"><button class="btn secondary" id="addCancel">Cancel</button><button class="btn" id="addSave">Save Asset</button></div>
   </div>
-</div>
+</dialog>
 
 <!-- In-place Scan Sheet -->
-<div class="sheet" id="scanOverlay" role="dialog" aria-modal="true" aria-labelledby="scanSheetTitle">
+<dialog class="sheet" id="scanOverlay" aria-labelledby="scanSheetTitle">
   <div class="sheet-backdrop" id="scanBackdrop"></div>
   <div class="sheet-panel">
     <h2 id="scanSheetTitle">Scan <button type="button" class="theme-toggle" id="scanClose" aria-label="Close the scanner">✕</button></h2>
@@ -368,10 +374,10 @@
     </div>
     <div id="scanMisses" class="hint hidden" style="margin-top:8px" role="status" aria-live="polite"></div>
     <div id="passSummary" class="hidden" style="margin-top:10px"></div>
-    <div id="scanStatus" class="hint" style="margin-top:8px"></div>
+    <div id="scanStatus" data-msg role="status" class="hint" style="margin-top:8px"></div>
     <div class="hint" style="margin-top:4px">Matches Asset Tag or Serial. A USB wedge scanner works anywhere on this page — no button needed.</div>
   </div>
-</div>
+</dialog>
 
 <script>
 "use strict";
@@ -1086,6 +1092,11 @@ function flash(el,kind,text){
 function toast(text,isErr,action){
   // action (optional): {label, onClick} -- renders a small inline button,
   // e.g. the scan-miss "+ Add it" offer. Existing 2-arg calls are unaffected.
+  // While a modal dialog or sheet is open the page behind it is inert and a
+  // toast there goes unseen, so the message lands in the dialog's own
+  // [data-msg] status slot instead.
+  const slot=!action&&document.querySelector("dialog:modal [data-msg]");
+  if(slot){slot.textContent=text;slot.classList.toggle("is-err",!!isErr);return;}
   const t=document.createElement("div");
   const above=document.querySelectorAll(".app-toast").length;   // stack newest under older ones
   t.className="app-toast";
@@ -1324,27 +1335,23 @@ async function compressImageToDataUrl(file, max=1280, q=0.72){
 let pendingImage=null, pendingImageName="";
 const addSheet=document.getElementById("addSheet");
 const scanSheet=document.getElementById("scanOverlay");
-// Both sheets are plain divs, so the dialog role (in the markup), the focus
-// moved into the panel, Esc-to-close and the focus handed back to whatever
-// opened it are wired once here rather than in each open/close path.
-let _sheetReturn=null;
+// The sheets (here and in checkout.js) are modal <dialog>s: showModal() gives
+// the inert page, focus trap, Esc/back-gesture close and focus return to the
+// opener. `.open` stays the app-side state flag the rest of the code reads.
 function openSheet(el,first){
-  _sheetReturn=document.activeElement;
   el.classList.add("open");
-  setTimeout(()=>{if(el.classList.contains("open"))(first||el.querySelector("button,input,select,textarea"))?.focus();},120);
+  if(!el.open)el.showModal();
+  if(first)first.focus();
 }
 function closeSheet(el){
   el.classList.remove("open");
-  const back=_sheetReturn;_sheetReturn=null;
-  if(back&&document.contains(back))setTimeout(()=>back.focus(),120);
+  if(el.open)el.close();
 }
-// The inline editor and the native modal dialogs own their own Escape handling
-// (Esc in a modal must close only the modal, not the sheet underneath).
-document.addEventListener("keydown",e=>{
-  if(e.key!=="Escape"||document.querySelector("dialog:modal"))return;
-  if(scanSheet.classList.contains("open")){stopScan();return;}
-  if(addSheet.classList.contains("open"))closeAdd();
-});
+// Esc / back gesture close the dialog natively; still `.open` means the app
+// didn't close it, so run that sheet's own teardown (stop the camera, clear
+// the add form's message).
+scanSheet.addEventListener("close",()=>{if(scanSheet.classList.contains("open"))stopScan();});
+addSheet.addEventListener("close",()=>{if(addSheet.classList.contains("open"))closeAdd();});
 // Single choke point for the add sheet — the toolbar button, Clone and the
 // scan-miss "+ Add it" toast all come through here, so one guard covers a
 // read-only role no matter how it is reached.
@@ -2247,6 +2254,6 @@ async function boot(){
 }
 boot();
 </script>
-<script src="/assets/checkout.js?v=5"></script>
+<script src="/assets/checkout.js?v=6"></script>
 </body>
 </html>

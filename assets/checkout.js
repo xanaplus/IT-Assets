@@ -49,13 +49,14 @@
   `;
 
   const sheetsHtml = `
-<div class="sheet" id="coSheet" role="dialog" aria-modal="true" aria-labelledby="coTitle">
+<dialog class="sheet" id="coSheet" aria-labelledby="coTitle">
   <div class="sheet-backdrop" data-close="co"></div>
   <div class="sheet-panel">
     <h2 id="coTitle">Check out <button type="button" class="theme-toggle" data-close="co" aria-label="Close">✕</button></h2>
     <label>Assets</label>
     <div class="co-chips" id="coChips"></div>
     <div class="co-row"><input type="text" id="coAddAsset" placeholder="Add another: tag or serial, or scan" list="coAssetList" autocomplete="off" /><button type="button" class="btn secondary" id="coAddAssetBtn">Add</button></div>
+    <div class="co-hint" id="coAddMsg" data-msg role="status"></div>
     <datalist id="coAssetList"></datalist>
     <label for="coPerson">To *</label>
     <input type="text" id="coPerson" placeholder="Start typing a name" list="coPeopleList" autocomplete="off" />
@@ -78,8 +79,8 @@
     <div id="coMsg"></div>
     <div class="form-actions"><button class="btn secondary" data-close="co">Cancel</button><button class="btn" id="coSave">Check out</button></div>
   </div>
-</div>
-<div class="sheet" id="ciSheet" role="dialog" aria-modal="true" aria-labelledby="ciTitle">
+</dialog>
+<dialog class="sheet" id="ciSheet" aria-labelledby="ciTitle">
   <div class="sheet-backdrop" data-close="ci"></div>
   <div class="sheet-panel">
     <h2 id="ciTitle">Check in <button type="button" class="theme-toggle" data-close="ci" aria-label="Close">✕</button></h2>
@@ -92,10 +93,10 @@
     <select id="ciStatus"></select>
     <label for="ciNotes">Notes</label>
     <textarea id="ciNotes" placeholder="e.g. cracked screen corner"></textarea>
-    <div id="ciMsg"></div>
+    <div id="ciMsg" data-msg role="status"></div>
     <div class="form-actions"><button class="btn secondary" data-close="ci">Cancel</button><button class="btn" id="ciSave">Check in</button></div>
   </div>
-</div>`;
+</dialog>`;
 
   function inject() {
     const st = document.createElement("style");
@@ -111,10 +112,10 @@
       if (!c) return;
       closeSheet($(c.dataset.close === "co" ? "coSheet" : "ciSheet"));
     });
-    document.addEventListener("keydown", (e) => {
-      if (e.key !== "Escape" || document.querySelector("dialog:modal")) return;
-      for (const id of ["coSheet", "ciSheet"]) if ($(id).classList.contains("open")) closeSheet($(id));
-    });
+    // Esc / back gesture close the native dialog; sync the app-side state.
+    for (const id of ["coSheet", "ciSheet"]) {
+      $(id).addEventListener("close", () => { if ($(id).classList.contains("open")) closeSheet($(id)); });
+    }
 
     $("coPerson").addEventListener("input", personChanged);
     $("coAddAssetBtn").addEventListener("click", addAssetFromInput);
@@ -262,6 +263,7 @@
     }
     coItems.push(it);
     inp.value = "";
+    $("coAddMsg").textContent = "";
     renderCoChips();
   }
 
@@ -296,6 +298,7 @@
     $("coCondition").value = "Good";
     $("coAsk").checked = true;
     $("coMsg").innerHTML = "";
+    $("coAddMsg").textContent = "";
     $("coAcc").querySelectorAll("input").forEach((c) => (c.checked = false));
     $("coPeopleList").innerHTML = people.filter((p) => p.active)
       .map((p) => `<option value="${esc(p.full_name)}">${esc([p.email, p.department].filter(Boolean).join(" · ") || "no email")}</option>`).join("");

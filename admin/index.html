@@ -158,6 +158,10 @@
     /* slide-over sheet (matches the assets page pattern) */
     .sheet{position:fixed;inset:0;z-index:70;display:none}
     .sheet.open{display:block}
+    /* modal <dialog>: strip the UA box; .sheet-backdrop is the scrim and click-to-close */
+    dialog.sheet{margin:0;padding:0;border:0;background:transparent;color:inherit;width:100%;height:100%;max-width:none;max-height:none;overflow:hidden}
+    dialog.sheet:modal{overscroll-behavior:contain}
+    dialog.sheet::backdrop{background:transparent;overflow:hidden;overscroll-behavior:contain}
     .sheet-backdrop{position:absolute;inset:0;background:rgba(10,12,16,.45);opacity:0;transition:opacity .24s var(--ease-out)}
     .sheet.open .sheet-backdrop{opacity:1}
     .sheet-panel{position:absolute;right:0;top:0;bottom:0;width:440px;max-width:92vw;background:var(--card);border-left:1px solid var(--hairline);box-shadow:var(--shadow-lifted);padding:22px;overflow:auto;transform:translateX(100%);transition:transform .42s cubic-bezier(0.34,1.56,0.64,1)}
@@ -328,10 +332,10 @@
 
 
 <!-- Invite slide-over sheet -->
-<div class="sheet" id="inviteSheet">
+<dialog class="sheet" id="inviteSheet" aria-labelledby="invTitle">
   <div class="sheet-backdrop" id="invBackdrop"></div>
   <div class="sheet-panel">
-    <h2>Invite user <button type="button" class="theme-toggle" id="invClose">✕</button></h2>
+    <h2 id="invTitle">Invite user <button type="button" class="theme-toggle" id="invClose" aria-label="Close">✕</button></h2>
     <label class="flabel">Work email</label>
     <input type="email" id="invEmail" placeholder="e.g. itsupport@xanalife.com" autocomplete="off" />
     <label class="flabel">Full name <span class="opt">(optional)</span></label>
@@ -356,9 +360,9 @@
       <input type="text" id="manualPass" placeholder="initial password (min 8 characters)" style="width:100%;margin-bottom:8px" autocomplete="off"/>
       <button class="small" id="btnManualSave">Create account with this password</button>
     </div>
-    <div id="invMsg" class="msg"></div>
+    <div id="invMsg" class="msg" data-msg role="status"></div>
   </div>
-</div>
+</dialog>
 <script>
 "use strict";
 XanaUI.initTheme();
@@ -423,8 +427,10 @@ function resetInviteSheet(){
   const m=document.getElementById("invMsg");
   if(m){m.className="msg";m.textContent="";}
 }
-function openInvite(){resetInviteSheet();document.getElementById("inviteSheet").classList.add("open");setTimeout(()=>document.getElementById("invEmail").focus(),350);}
-function closeInvite(){document.getElementById("inviteSheet").classList.remove("open");}
+// Modal <dialog>: inert page, focus trap, Esc and focus return come native.
+function openInvite(){resetInviteSheet();const s=document.getElementById("inviteSheet");s.classList.add("open");if(!s.open)s.showModal();document.getElementById("invEmail").focus();}
+function closeInvite(){const s=document.getElementById("inviteSheet");s.classList.remove("open");if(s.open)s.close();}
+document.getElementById("inviteSheet").addEventListener("close",()=>document.getElementById("inviteSheet").classList.remove("open"));
 document.getElementById("btnOpenInvite").addEventListener("click",openInvite);
 document.getElementById("invClose").addEventListener("click",closeInvite);
 document.getElementById("invBackdrop").addEventListener("click",closeInvite);
@@ -770,6 +776,10 @@ function showDialog({title,body,confirmText="Confirm",danger=false,onConfirm}){
 }
 let _toastT=null;
 function toast(text,isErr){
+  // A modal is open: the page behind is inert and a toast there goes unseen,
+  // so the message lands in the dialog's own [data-msg] status slot.
+  const slot=document.querySelector("dialog:modal [data-msg]");
+  if(slot){slot.textContent=text;slot.classList.toggle("is-err",!!isErr);return;}
   const t=document.createElement("div");
   // Inverted surface: background and text swap together per theme, so the
   // pair always contrasts (a fixed #fff on var(--text) went white-on-white).
@@ -812,6 +822,7 @@ function showResetDialog(userId){
     html:'<div id="dlgTitle" style="font-weight:700;font-size:.95rem;margin-bottom:6px">Reset password</div>'
       +'<div style="font-size:.8rem;color:var(--muted);margin-bottom:10px">Set a temporary password. Share it in person or by phone — the user must choose their own at next sign-in.</div>'
       +'<input type="text" id="rpw" aria-label="Temporary password" placeholder="temporary password (min 8 chars)" autocomplete="off" style="width:100%;margin-bottom:14px" autofocus/>'
+      +'<div data-msg role="status"></div>'
       +'<div id="dlgBtns" style="display:flex;gap:8px">'
       +'<button type="button" class="secondary" id="dlgCancel" style="flex:1">Cancel</button>'
       +'<button type="button" id="dlgOk" style="flex:1">Reset</button>'
