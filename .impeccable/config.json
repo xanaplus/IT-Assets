@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "geist",
+        "createdAt": "2026-11-13T06:26:13.115Z",
+        "reason": "project design system: Geist is the shared face in css/base.css from the Xana Ledger tokens, used site-wide before this session"
+      }
+    ]
+  }
+}
